@@ -124,7 +124,7 @@ function isTrustedSender(e: Electron.IpcMainInvokeEvent): boolean {
 
 function setupIpc(): void {
   ipcMain.handle('items:get', (e) => {
-    if (!isTrustedSender(e)) return;
+    if (!isTrustedSender(e)) return []; // keep the Promise<Item[]> contract total
     return store.getAll();
   });
   ipcMain.handle('items:add', (e, text: unknown) => {
@@ -214,12 +214,13 @@ function setupGlobalHook(): void {
 let capturing = false;
 
 async function onDoubleShift(): Promise<void> {
-  if (capturing) return;
-  // if the overlay itself is focused, double-shift just hides it
+  // if the overlay itself is focused, double-shift just hides it — this must
+  // work even while a capture is still in flight
   if (win?.isVisible() && win.isFocused()) {
     win.hide();
     return;
   }
+  if (capturing) return;
   capturing = true;
   try {
     // capture BEFORE showing the overlay — the foreign app must still be focused
@@ -228,6 +229,10 @@ async function onDoubleShift(): Promise<void> {
       store.add(text, 'capture');
       pushItems();
     }
+  } catch (err) {
+    // a capture failure must never swallow the overlay — the invariant is
+    // "double-shift always opens the panel"; capture merely degrades to null
+    console.error('capture failed', err);
   } finally {
     capturing = false;
   }

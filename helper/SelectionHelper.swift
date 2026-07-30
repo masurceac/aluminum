@@ -19,7 +19,7 @@ func capture() -> String {
         return "ERR no-focused-element:\(focusErr.rawValue)"
     }
     // a misbehaving app could hand back a non-AXUIElement CF type; a force-cast
-    // would trap and kill the helper (the client never respawns it)
+    // would trap and kill the helper (the client's respawn budget is small)
     guard CFGetTypeID(focusedRef) == AXUIElementGetTypeID() else {
         return "ERR not-an-element"
     }

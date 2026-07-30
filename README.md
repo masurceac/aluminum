@@ -63,9 +63,10 @@ line protocol over stdio:
 Fallback, for apps that don't expose their selection to the accessibility tree:
 the helper synthesizes Ctrl+C / Cmd+C and Aluminum reads the clipboard, then
 puts the previous contents back (text, HTML and RTF flavors are all restored).
-The fallback is skipped entirely when the clipboard holds something that can't
-be restored — an image or a file list — so it will never destroy those. It is
-also skipped when the helper isn't running.
+The fallback is skipped when the clipboard holds a format Aluminum can't
+restore — an image or a file list. (Application-private formats that Electron
+can't see, e.g. live Excel ranges, may still be lost alongside plain text.)
+It is also skipped when the helper isn't running.
 
 Captured text is capped at 10,000 characters. A helper that dies is restarted
 automatically, up to three times in a row.

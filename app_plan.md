@@ -32,6 +32,11 @@ src/main/store.ts              # JSON-file item store (pure, testable)
 src/main/double-tap.ts         # double-tap detector state machine (pure, testable)
 src/main/selection.ts          # client for the native helpers + capture-with-fallback flow
 src/main/preload.ts            # contextBridge API
+src/shared/api.ts              # cross-boundary types (Item, ItemSource, AluminumApi)
+tsconfig.base.json             # shared compiler options
+tsconfig.main.json             # node-typed program: src/main + src/shared + tests
+tsconfig.renderer.json         # DOM-typed program (no node types): src/renderer + src/shared
+tests/selection.test.ts        # SelectionCapturer framing/pairing vs a fake child process
 src/renderer/index.html
 src/renderer/renderer.ts       # list UI, keyboard handling
 src/renderer/style.css
@@ -633,6 +638,16 @@ git commit -m "feat: JSON-file item store"
 
 ### Task 4: Tray + overlay window + IPC (Electron main)
 
+> **As-built note:** the shipped `src/main/main.ts` is authoritative over the snippets below,
+> which predate review fixes. Deltas: `win.on('close')` is intercepted (preventDefault + hide
+> unless `isQuitting`, set on `before-quit`) so Alt+F4/Cmd+W can never destroy the tray
+> window; the blur handler arms `lastHiddenAt` only when the window was visible; the
+> tray-click handler guards on `TRAY_BLUR_RACE_MS` (the menu item and `toggleOverlay` do
+> not); the store is built by `createStore()` with an `onError` that logs and shows a
+> one-time `dialog.showErrorBox` on save failure; every IPC handler also `typeof`-guards its
+> payload; `resizable: false`. The clamp formula in the snippet below has been corrected to
+> the shipped `Math.max(origin, Math.min(...))` form — origin must win on small work areas.
+
 Main-process behavior can't be meaningfully unit-tested; verify manually per step.
 
 **Delegation:** main model (cross-platform window/tray behavior — blur timing, always-on-top levels, dock/menu-bar quirks may need live debugging)
@@ -721,8 +736,9 @@ export function showOverlay(): void {
   const cursor = screen.getCursorScreenPoint();
   const display = screen.getDisplayNearestPoint(cursor);
   const wa = display.workArea;
-  const x = Math.min(Math.max(cursor.x - WIN_W / 2, wa.x), wa.x + wa.width - WIN_W);
-  const y = Math.min(Math.max(cursor.y + 16, wa.y), wa.y + wa.height - WIN_H);
+  // work-area origin must win when the area is smaller than the window
+  const x = Math.max(wa.x, Math.min(cursor.x - WIN_W / 2, wa.x + wa.width - WIN_W));
+  const y = Math.max(wa.y, Math.min(cursor.y + 16, wa.y + wa.height - WIN_H));
   win.setPosition(Math.round(x), Math.round(y));
   win.show();
   win.focus();
@@ -1161,7 +1177,7 @@ app.on('will-quit', () => uIOhook.stop());
 Run: `npm start`
 Expected:
 - Double-tap Shift while ANY app is focused (Notepad, browser) → overlay toggles.
-- **Confirm the overlay takes keyboard focus when shown from the global hook while another app is foreground** — type a character and check it lands in the overlay input, not the other app. (Windows restricts SetForegroundWindow from a process that owns neither the foreground window nor the last input event; if focus doesn't take, try `win.showInactive()` + `win.moveTop()` or the alwaysOnTop toggle-cycle workaround. If `showInactive` ends up being the path, the renderer's reset-on-show hangs on the window `focus` event, which then never fires — switch it to `document.addEventListener('visibilitychange', ...)` gated on `visibilityState === 'visible'`.)
+- **Confirm the overlay takes keyboard focus when shown from the global hook while another app is foreground** — type a character and check it lands in the overlay input, not the other app. *(As-built: the default `win.show()` + `win.focus()` path shipped and passed an automated check — `isFocused() === true` after a hook-triggered show with synthesized input. A pass with physical keys is still the first thing to verify by hand; the fallback below changes two files.)* (Windows restricts SetForegroundWindow from a process that owns neither the foreground window nor the last input event; if focus doesn't take, try `win.showInactive()` + `win.moveTop()` or the alwaysOnTop toggle-cycle workaround. If `showInactive` ends up being the path, the renderer's reset-on-show hangs on the window `focus` event, which then never fires — switch it to `document.addEventListener('visibilitychange', ...)` gated on `visibilityState === 'visible'`.)
 - Shift+letter typing in other apps does NOT trigger it.
 - Holding Shift does NOT trigger it.
 - Quit from tray exits cleanly (process does not hang — if it hangs, the uIOhook.stop() call is missing).
@@ -1622,8 +1638,10 @@ git commit -m "feat: selection capture via UIA helper with clipboard fallback"
 > `MAX_CAPTURE_CHARS` 10k cap (slice-then-trim), spawn/stdin/stderr error listeners with
 > `buf` reset on exit, timeout tombstones (a timed-out request's late reply is swallowed in
 > place, never misdelivered to the next request), fallback skipped entirely when the helper
-> isn't running or the clipboard holds non-text formats (readText/writeText can only restore
-> text), `copyRes === 'OK'` exact match, clipboard restore in `finally`.
+> isn't running or the clipboard holds a format outside the restorable allowlist
+> (text/plain, text/html, text/rtf — all three flavors are snapshotted and restored via
+> `clipboard.write`; images and file lists skip the fallback), `copyRes === 'OK'` exact
+> match, clipboard restore in `finally`.
 > Still open for this task's polish: bounded helper respawn policy, unit tests for
 > SelectionCapturer framing/pairing against a fake child process, defensive `﻿` strip.
 >

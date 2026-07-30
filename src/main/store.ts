@@ -9,7 +9,6 @@ import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 import type { Item, ItemSource } from '../shared/api';
-export type { Item, ItemSource };
 
 export interface ItemStoreOptions {
   /** called when a read/write fails; the mutation stays in memory */

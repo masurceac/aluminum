@@ -971,6 +971,7 @@ input.addEventListener('keydown', (e) => {
     selectedIndex = 0;
     render();
     e.preventDefault();
+    e.stopPropagation(); // keep the document handler from re-incrementing
     input.blur();
   }
 });

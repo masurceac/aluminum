@@ -30,21 +30,34 @@ export class SelectionCapturer {
         this.pending.shift()?.(line);
       }
     });
+    // helper faults must be visible, and an unread stderr pipe would apply
+    // backpressure if the runtime ever wrote diagnostics to it
+    this.proc.stderr.setEncoding('utf8');
+    this.proc.stderr.on('data', (chunk: string) => console.error('helper stderr:', chunk));
+    // a write to a dying helper's stdin errors before 'exit' is delivered;
+    // without a listener that becomes an unowned uncaught exception
+    this.proc.stdin.on('error', (err) => console.error('helper stdin error', err));
     this.proc.on('error', (err) => {
       // spawn failure (missing/blocked binary) must not go unhandled
       console.error('selection helper failed to start', err);
       this.proc = null;
+      this.buf = '';
       this.pending.splice(0).forEach((r) => r('ERR helper-spawn-failed'));
     });
     this.proc.on('exit', () => {
       this.proc = null;
+      this.buf = ''; // a partial line must not corrupt a future start()
       // flush waiters so callers don't hang
       this.pending.splice(0).forEach((r) => r('ERR helper-exited'));
     });
   }
 
   stop(): void {
-    this.proc?.stdin.write('EXIT\n');
+    try {
+      this.proc?.stdin.write('EXIT\n');
+    } catch {
+      /* already dead */
+    }
     this.proc?.kill();
     this.proc = null;
   }
@@ -53,8 +66,11 @@ export class SelectionCapturer {
     if (!this.proc) return Promise.resolve('ERR helper-not-running');
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
+        // the helper is a serial read loop: its reply is still coming. Replace
+        // the handler with a tombstone that swallows the late line in place —
+        // splicing it out would misdeliver the reply to the NEXT request.
         const i = this.pending.indexOf(handler);
-        if (i !== -1) this.pending.splice(i, 1);
+        if (i !== -1) this.pending[i] = () => {};
         resolve('ERR timeout');
       }, REQUEST_TIMEOUT_MS);
       const handler = (line: string) => {
@@ -62,7 +78,11 @@ export class SelectionCapturer {
         resolve(line);
       };
       this.pending.push(handler);
-      this.proc!.stdin.write(cmd + '\n');
+      try {
+        this.proc!.stdin.write(cmd + '\n');
+      } catch (err) {
+        console.error('helper write failed', err);
+      }
     });
   }
 
@@ -75,21 +95,30 @@ export class SelectionCapturer {
   async capture(): Promise<string | null> {
     const res = await this.request('CAPTURE');
     if (res.startsWith('OK ')) {
-      const text = Buffer.from(res.slice(3), 'base64').toString('utf8');
-      if (text.trim()) return text.slice(0, MAX_CAPTURE_CHARS);
+      const text = Buffer.from(res.slice(3), 'base64').toString('utf8').slice(0, MAX_CAPTURE_CHARS);
+      if (text.trim()) return text;
     }
 
-    // fallback: clipboard trick
+    // no helper → no COPYKEY either; touching the clipboard would wipe it for nothing
+    if (!this.proc) return null;
+
+    // fallback: clipboard trick — only when the clipboard holds nothing we
+    // can't restore (readText/writeText round-trips text only; an image or
+    // file-list would be silently destroyed)
+    const formats = clipboard.availableFormats();
+    const textOnly = formats.every((f) => f.startsWith('text/'));
+    if (!textOnly && formats.length > 0) return null;
+
     const saved = clipboard.readText();
     clipboard.clear();
-    const copyRes = await this.request('COPYKEY');
-    if (!copyRes.startsWith('OK')) {
-      clipboard.writeText(saved);
-      return null;
+    try {
+      const copyRes = await this.request('COPYKEY');
+      if (copyRes !== 'OK') return null;
+      await new Promise((r) => setTimeout(r, CLIPBOARD_SETTLE_MS));
+      const grabbed = clipboard.readText().slice(0, MAX_CAPTURE_CHARS);
+      return grabbed.trim() ? grabbed : null;
+    } finally {
+      clipboard.writeText(saved); // restore the user's clipboard even on a throw
     }
-    await new Promise((r) => setTimeout(r, CLIPBOARD_SETTLE_MS));
-    const grabbed = clipboard.readText();
-    clipboard.writeText(saved); // restore the user's clipboard
-    return grabbed.trim() ? grabbed.slice(0, MAX_CAPTURE_CHARS) : null;
   }
 }

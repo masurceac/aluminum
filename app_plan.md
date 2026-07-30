@@ -1615,7 +1615,17 @@ git commit -m "feat: selection capture via UIA helper with clipboard fallback"
 - Create: `README.md`
 - Modify: `src/main/main.ts`
 
-- [ ] **Step 1: Guard against a missing helper exe**
+> **As-built note (Task 9):** Step 1 below was pulled forward into Task 9's commit — do not
+> add it twice. Task 9 also shipped these approved deltas beyond the plan snippet:
+> `MAX_CAPTURE_CHARS` 10k cap (slice-then-trim), spawn/stdin/stderr error listeners with
+> `buf` reset on exit, timeout tombstones (a timed-out request's late reply is swallowed in
+> place, never misdelivered to the next request), fallback skipped entirely when the helper
+> isn't running or the clipboard holds non-text formats (readText/writeText can only restore
+> text), `copyRes === 'OK'` exact match, clipboard restore in `finally`.
+> Still open for this task's polish: bounded helper respawn policy, unit tests for
+> SelectionCapturer framing/pairing against a fake child process, defensive `﻿` strip.
+
+- [ ] **Step 1: Guard against a missing helper exe** *(done in Task 9 — see note above)*
 
 In `main.ts`, wrap capturer startup so the app still works (fallback-less) when the helper wasn't built:
 
@@ -1762,6 +1772,7 @@ git commit -m "feat: graceful degradation without helper + README"
 | macOS Accessibility permission not granted / attributed to wrong process | `isTrustedAccessibilityClient(true)` prompts on first run. In dev (launched from a terminal), macOS attributes trust to the terminal app — grant it there. Helper `ERR` codes include the raw `AXError` value for diagnosis. |
 | Some macOS apps don't expose `kAXSelectedTextAttribute` (Chromium/Electron apps without AXManualAccessibility, some Catalyst apps) | Cmd+C clipboard-trick fallback handles them automatically (Task 9). |
 | macOS tasks authored on Windows can't be verified until run on Mac hardware | Tasks 8's build/verify steps and the macOS half of regression are explicitly marked deferred-to-Mac; code compiles from a clean checkout with `npm run helper`. |
+| Synthesized Ctrl+C lands in apps where Ctrl+C isn't copy (console windows → interrupt) | Fallback only fires when the native API found no selection; consoles rarely have one selected. Accept for v1; a foreground-window class check could gate it later. |
 
 ## Explicitly out of scope (v1)
 

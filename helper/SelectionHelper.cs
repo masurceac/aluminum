@@ -21,7 +21,7 @@ class SelectionHelper
     [DllImport("user32.dll")] static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
     [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr hWnd);
     [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr hWnd);
-    [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
     [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr hWnd);
     [DllImport("user32.dll")] static extern bool PeekMessage(out MSG msg, IntPtr hWnd, uint min, uint max, uint remove);
 
@@ -98,7 +98,13 @@ class SelectionHelper
                 {
                     attached = AttachThreadInput(myThread, fgThread, true);
                 }
-                ShowWindow(target, 5); // SW_SHOW
+                // NOT ShowWindow(target, SW_SHOW): this process is spawned with
+                // STARTF_USESHOWWINDOW + SW_HIDE (Node's windowsHide), and Windows
+                // substitutes that inherited wShowWindow for the nCmdShow argument
+                // of the FIRST ShowWindow call the process makes — turning our
+                // "show" into a hide of the overlay. SetWindowPos is exempt.
+                SetWindowPos(target, IntPtr.Zero, 0, 0, 0, 0,
+                    0x0040 | 0x0001 | 0x0002 | 0x0004 | 0x0010); // SHOWWINDOW|NOSIZE|NOMOVE|NOZORDER|NOACTIVATE
                 BringWindowToTop(target);
                 SetForegroundWindow(target);
                 SetFocus(target);

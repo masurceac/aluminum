@@ -815,6 +815,14 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 
 **Delegation:** Opus 5 subagent (mechanical — all file contents provided)
 
+> **As-built note:** Task 5 also delivered a review carry-forward from Task 1: cross-boundary
+> types (`Item`, `ItemSource`, `AluminumApi`) moved to a new `src/shared/api.ts` (store.ts and
+> preload.ts import from it; store re-exports for tests), and typecheck split into
+> `tsconfig.main.json` (node types; src/main + src/shared + tests) and `tsconfig.renderer.json`
+> (no node types, DOM lib; src/renderer + src/shared) via `tsconfig.base.json`. The root
+> `tsconfig.json` remains a loose editor-facing config — only `npm run typecheck` enforces the
+> renderer/node boundary. The renderer must import types ONLY from `../shared/api`.
+
 **Files:**
 - Modify: `src/renderer/index.html`, `src/renderer/renderer.ts`, `src/renderer/style.css` (replace placeholders)
 
@@ -901,8 +909,7 @@ body {
 - [ ] **Step 3: Write `src/renderer/renderer.ts`**
 
 ```ts
-import type { AluminumApi } from '../main/preload';
-import type { Item } from '../main/store';
+import type { AluminumApi, Item } from '../shared/api';
 
 declare global {
   interface Window { aluminum: AluminumApi; }

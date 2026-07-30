@@ -10,19 +10,20 @@ export interface DoubleTapOptions {
 /**
  * Detects a double-tap of a (modifier) key from raw keydown/keyup events.
  * A "clean tap" = keydown then keyup with no other key pressed in between.
- * Fires on the keydown of the second clean-tap-started press within windowMs.
+ * Fires on the keydown of the press that follows a clean tap, when it arrives
+ * within windowMs of that tap's keyup.
  */
 export class DoubleTapDetector {
-  private codes: Set<number>;
-  private windowMs: number;
-  private now: () => number;
+  private readonly codes: Set<number>;
+  private readonly windowMs: number;
+  private readonly now: () => number;
 
   /** timestamp of the keyup that completed the last clean tap, or null */
   private lastCleanTapUp: number | null = null;
-  /** target key is currently down */
-  private isDown = false;
+  /** which target keycode is currently down, or null */
+  private downCode: number | null = null;
   /** another key was pressed while target key was down */
-  private dirty = false;
+  private sawOtherKey = false;
   /** the current press already fired; its keyup must not seed a new sequence */
   private firedOnThisPress = false;
 
@@ -36,37 +37,44 @@ export class DoubleTapDetector {
   keydown(code: number): boolean {
     if (!this.codes.has(code)) {
       // some other key: taints an in-progress tap and kills any pending first tap
-      if (this.isDown) this.dirty = true;
+      if (this.downCode !== null) this.sawOtherKey = true;
       this.lastCleanTapUp = null;
       return false;
     }
-    if (this.isDown) {
-      // auto-repeat while held — ignore
+    if (this.downCode !== null) {
+      // a target key is already held: this is either auto-repeat of that key,
+      // or the other shift being tapped while it is held — neither can fire
       return false;
     }
     const fired =
       this.lastCleanTapUp !== null &&
       this.now() - this.lastCleanTapUp <= this.windowMs;
-    this.isDown = true;
-    this.dirty = false;
+    this.downCode = code;
+    this.sawOtherKey = false;
     this.firedOnThisPress = fired;
-    if (fired) {
-      this.lastCleanTapUp = null; // consume the sequence
-      return true;
-    }
-    return false;
+    this.lastCleanTapUp = null; // pending tap is now either consumed or expired
+    return fired;
   }
 
   /** Feed a keyup. */
   keyup(code: number): void {
-    if (!this.codes.has(code)) return;
-    if (this.isDown && !this.dirty && !this.firedOnThisPress) {
+    // ignore unmatched/stray keyups so they cannot destroy a pending tap
+    if (code !== this.downCode) return;
+    if (!this.sawOtherKey && !this.firedOnThisPress) {
       this.lastCleanTapUp = this.now();
     } else {
       this.lastCleanTapUp = null;
     }
-    this.isDown = false;
-    this.dirty = false;
+    this.downCode = null;
+    this.sawOtherKey = false;
+    this.firedOnThisPress = false;
+  }
+
+  /** Drop all state (escape hatch for hook restarts). */
+  reset(): void {
+    this.lastCleanTapUp = null;
+    this.downCode = null;
+    this.sawOtherKey = false;
     this.firedOnThisPress = false;
   }
 }

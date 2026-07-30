@@ -74,4 +74,48 @@ describe('DoubleTapDetector', () => {
     const { det } = makeDetector();
     expect(det.keydown(KEY_A)).toBe(false);
   });
+
+  it('does not fire when a key is typed between two taps', () => {
+    const { det, tick } = makeDetector();
+    det.keydown(SHIFT_L);
+    det.keyup(SHIFT_L);
+    det.keydown(KEY_A);
+    det.keyup(KEY_A);
+    tick(50);
+    expect(det.keydown(SHIFT_L)).toBe(false);
+  });
+
+  it('fires at exactly the window boundary', () => {
+    const { det, tick } = makeDetector();
+    det.keydown(SHIFT_L);
+    det.keyup(SHIFT_L);
+    tick(300);
+    expect(det.keydown(SHIFT_L)).toBe(true);
+  });
+
+  it('does not fire just past the window boundary', () => {
+    const { det, tick } = makeDetector();
+    det.keydown(SHIFT_L);
+    det.keyup(SHIFT_L);
+    tick(301);
+    expect(det.keydown(SHIFT_L)).toBe(false);
+  });
+
+  it('does not fire when the other shift is tapped while one is held', () => {
+    const { det, tick } = makeDetector();
+    det.keydown(SHIFT_L); // held down throughout
+    det.keydown(SHIFT_R);
+    det.keyup(SHIFT_R);
+    tick(50);
+    expect(det.keydown(SHIFT_L)).toBe(false);
+  });
+
+  it('reset() clears an in-progress sequence', () => {
+    const { det, tick } = makeDetector();
+    det.keydown(SHIFT_L);
+    det.keyup(SHIFT_L);
+    det.reset();
+    tick(100);
+    expect(det.keydown(SHIFT_L)).toBe(false);
+  });
 });

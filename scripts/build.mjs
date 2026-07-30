@@ -10,6 +10,7 @@ await build({
   platform: 'node',
   format: 'cjs',
   outfile: 'dist/main.js',
+  sourcemap: true,
   external: ['electron', 'uiohook-napi'],
 });
 
@@ -20,6 +21,7 @@ await build({
   platform: 'node',
   format: 'cjs',
   outfile: 'dist/preload.js',
+  sourcemap: true,
   external: ['electron'],
 });
 
@@ -30,6 +32,7 @@ await build({
   platform: 'browser',
   format: 'iife',
   outfile: 'dist/renderer.js',
+  sourcemap: true,
 });
 
 cpSync('src/renderer/index.html', 'dist/index.html');

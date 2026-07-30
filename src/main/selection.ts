@@ -102,14 +102,18 @@ export class SelectionCapturer {
     // no helper → no COPYKEY either; touching the clipboard would wipe it for nothing
     if (!this.proc) return null;
 
-    // fallback: clipboard trick — only when the clipboard holds nothing we
-    // can't restore (readText/writeText round-trips text only; an image or
-    // file-list would be silently destroyed)
+    // fallback: clipboard trick — only when every flavor on the clipboard is
+    // one we can snapshot and put back. An image or file-list (text/uri-list)
+    // would be silently destroyed by clear() + writeText().
+    const RESTORABLE = ['text/plain', 'text/html', 'text/rtf'];
     const formats = clipboard.availableFormats();
-    const textOnly = formats.every((f) => f.startsWith('text/'));
-    if (!textOnly && formats.length > 0) return null;
+    if (!formats.every((f) => RESTORABLE.includes(f))) return null;
 
-    const saved = clipboard.readText();
+    const saved = {
+      text: clipboard.readText(),
+      html: clipboard.readHTML(),
+      rtf: clipboard.readRTF(),
+    };
     clipboard.clear();
     try {
       const copyRes = await this.request('COPYKEY');
@@ -118,7 +122,7 @@ export class SelectionCapturer {
       const grabbed = clipboard.readText().slice(0, MAX_CAPTURE_CHARS);
       return grabbed.trim() ? grabbed : null;
     } finally {
-      clipboard.writeText(saved); // restore the user's clipboard even on a throw
+      clipboard.write(saved); // restore every flavor, even on a throw
     }
   }
 }

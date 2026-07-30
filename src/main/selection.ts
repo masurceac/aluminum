@@ -113,6 +113,18 @@ export class SelectionCapturer {
   }
 
   /**
+   * Ask the helper to hand OS foreground to `hwnd` (Windows only). Electron's
+   * own show()/focus() can't: Windows denies foreground to a process that
+   * didn't receive the last input event, which a global hotkey never does.
+   * Returns false if the helper is missing, errored, or the grab was refused.
+   */
+  async forceForeground(hwnd: string): Promise<boolean> {
+    const res = await this.request(`FOREGROUND ${hwnd}`);
+    if (res !== 'OK') console.error('foreground grab failed:', res);
+    return res === 'OK';
+  }
+
+  /**
    * Returns the selected text of the focused foreign app, or null.
    * Primary: native accessibility API (UIA TextPattern / AXSelectedText).
    * Fallback: synthesized Ctrl+C / Cmd+C + clipboard save/restore, for apps

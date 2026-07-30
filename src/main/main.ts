@@ -104,6 +104,17 @@ function showOverlay(): void {
   win.setPosition(Math.round(x), Math.round(y));
   win.show();
   win.focus();
+  app.focus({ steal: true }); // macOS: activate the app, not just the window
+  // Windows: show()/focus() only draw us on top — the OS keeps keyboard focus
+  // with whichever app owns the foreground lock. The native helper borrows it.
+  if (process.platform === 'win32') {
+    const handle = win.getNativeWindowHandle();
+    const hwnd =
+      handle.length === 8 ? handle.readBigUInt64LE().toString() : String(handle.readUInt32LE());
+    void capturer?.forceForeground(hwnd).then((ok) => {
+      if (ok) win?.webContents.focus();
+    });
+  }
 }
 
 function toggleOverlay(): void {

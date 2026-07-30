@@ -7,6 +7,7 @@
 // Compiled with the .NET Framework 4.8 csc.exe that ships in Windows (C# 5 —
 // no string interpolation, no null-conditional operators).
 using System;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Automation;
 using System.Windows.Automation.Text;
@@ -14,6 +15,22 @@ using System.Windows.Forms;
 
 class SelectionHelper
 {
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr pid);
+    [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+    [DllImport("user32.dll")] static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+    [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] static extern bool BringWindowToTop(IntPtr hWnd);
+    [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr hWnd);
+    [DllImport("user32.dll")] static extern bool PeekMessage(out MSG msg, IntPtr hWnd, uint min, uint max, uint remove);
+
+    struct MSG
+    {
+        public IntPtr hwnd; public uint message; public IntPtr wParam; public IntPtr lParam;
+        public uint time; public int ptX; public int ptY;
+    }
+
     [STAThread]
     static void Main()
     {
@@ -39,6 +56,10 @@ class SelectionHelper
                     Console.WriteLine("ERR sendkeys:" + e.GetType().Name);
                 }
             }
+            else if (line.StartsWith("FOREGROUND "))
+            {
+                Console.WriteLine(Foreground(line.Substring(11).Trim()));
+            }
             else if (line == "EXIT")
             {
                 return;
@@ -48,6 +69,49 @@ class SelectionHelper
                 Console.WriteLine("ERR unknown-command");
             }
             Console.Out.Flush();
+        }
+    }
+
+    // Windows only grants foreground to a process that owns the last input event.
+    // A global-hotkey overlay never does, so ShowWindow draws it on top while the
+    // keyboard keeps going to the previous app. Attaching this thread to the
+    // foreground thread's input queue borrows its foreground rights long enough
+    // to hand them to the target window.
+    static string Foreground(string arg)
+    {
+        try
+        {
+            long h;
+            if (!long.TryParse(arg, out h)) return "ERR bad-hwnd";
+            IntPtr target = new IntPtr(h);
+
+            MSG msg;
+            PeekMessage(out msg, IntPtr.Zero, 0, 0, 0); // force a message queue on this thread
+
+            IntPtr fg = GetForegroundWindow();
+            uint fgThread = GetWindowThreadProcessId(fg, IntPtr.Zero);
+            uint myThread = GetCurrentThreadId();
+            bool attached = false;
+            try
+            {
+                if (fgThread != 0 && fgThread != myThread)
+                {
+                    attached = AttachThreadInput(myThread, fgThread, true);
+                }
+                ShowWindow(target, 5); // SW_SHOW
+                BringWindowToTop(target);
+                SetForegroundWindow(target);
+                SetFocus(target);
+            }
+            finally
+            {
+                if (attached) AttachThreadInput(myThread, fgThread, false);
+            }
+            return GetForegroundWindow() == target ? "OK" : "ERR not-foreground";
+        }
+        catch (Exception e)
+        {
+            return "ERR exception:" + e.GetType().Name;
         }
     }
 

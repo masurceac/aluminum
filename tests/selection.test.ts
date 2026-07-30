@@ -163,6 +163,27 @@ describe('SelectionCapturer.capture', () => {
   });
 });
 
+describe('SelectionCapturer.forceForeground', () => {
+  it('sends the hwnd and reports success', async () => {
+    const cap = makeCapturer();
+    const p = cap.forceForeground('12345');
+
+    expect(proc().stdin.write).toHaveBeenCalledWith('FOREGROUND 12345\n');
+    say('OK\n');
+    expect(await p).toBe(true);
+    cap.stop();
+  });
+
+  it('reports failure when the OS refuses the grab', async () => {
+    const cap = makeCapturer();
+    const p = cap.forceForeground('12345');
+
+    say('ERR not-foreground\n');
+    expect(await p).toBe(false);
+    cap.stop();
+  });
+});
+
 describe('SelectionCapturer respawn', () => {
   it('restarts the helper after an unexpected exit', async () => {
     const cap = makeCapturer();

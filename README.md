@@ -52,6 +52,12 @@ whatever slides into its place, so repeated `Delete` clears down the list.
 
 ## How capture works
 
+The helper has one more job on Windows: handing the overlay real keyboard
+focus. Windows only grants foreground to a process that received the last
+input event, which a global hotkey never does — without this the overlay
+appears on top but keystrokes still go to the app you came from until you
+click it.
+
 Primary path — a small native helper per platform, both speaking the same
 line protocol over stdio:
 

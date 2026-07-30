@@ -68,6 +68,9 @@ while let line = readLine() {
     case "CAPTURE": print(capture())
     case "COPYKEY": print(sendCmdC())
     case "EXIT": exit(0)
+    // macOS has no foreground-lock equivalent: app.focus({steal:true}) in the
+    // main process is sufficient, so the command exists only for protocol parity
+    case let cmd where cmd.hasPrefix("FOREGROUND "): print("ERR unsupported-on-macos")
     default: print("ERR unknown-command")
     }
     fflush(stdout)

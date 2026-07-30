@@ -1196,6 +1196,9 @@ git commit -m "feat: global double-shift hook toggles overlay"
 Persistent console process. Line protocol on stdio (shared by BOTH platform helpers — Task 8 implements the same protocol on macOS):
 - stdin `CAPTURE\n` → stdout `OK <base64-utf8-text>\n` or `ERR <reason>\n`
 - stdin `COPYKEY\n` → synthesizes Ctrl+C (Cmd+C on macOS) into the foreground app → `OK\n`
+- stdin `FOREGROUND <hwnd>\n` → borrows the foreground thread's input queue and hands OS
+  foreground to that window → `OK\n` / `ERR not-foreground\n` (macOS returns
+  `ERR unsupported-on-macos`; `app.focus({steal:true})` covers it there)
 - stdin `EXIT\n` → exits
 
 **Delegation:** main model (csc/GAC build environment may need live debugging)
@@ -1831,7 +1834,8 @@ validation, renderer polish, helper respawn + SelectionCapturer tests, README.
 | macOS Accessibility permission not granted / attributed to wrong process | `isTrustedAccessibilityClient(true)` prompts on first run. In dev (launched from a terminal), macOS attributes trust to the terminal app — grant it there. Helper `ERR` codes include the raw `AXError` value for diagnosis. |
 | Some macOS apps don't expose `kAXSelectedTextAttribute` (Chromium/Electron apps without AXManualAccessibility, some Catalyst apps) | Cmd+C clipboard-trick fallback handles them automatically (Task 9). |
 | macOS tasks authored on Windows can't be verified until run on Mac hardware | Tasks 8's build/verify steps and the macOS half of regression are explicitly marked deferred-to-Mac; code compiles from a clean checkout with `npm run helper`. |
-| Synthesized Ctrl+C lands in apps where Ctrl+C isn't copy (console windows → interrupt) | Fallback only fires when the native API found no selection; consoles rarely have one selected. Accept for v1; a foreground-window class check could gate it later. |
+| Synthesized Ctrl+C lands in apps where Ctrl+C isn't copy (console windows → interrupt) | Fallback only fires when the native API found no selection; consoles rarely have one selected. Accept for v1; a foreground-window class check could gate it later. **Open item** — it does fire on every double-Shift in Claude Code (no UIA TextPattern there). |
+| **Windows denies keyboard foreground to a hotkey-shown overlay** (fixed) | `show()`/`focus()` only paint the window on top: Windows grants foreground to the process owning the last input event, which a passive hook never does. Electron then *reports* `isFocused() === true` while keystrokes still go to the previous app — the user must click the overlay to type. Fixed by the helper's `FOREGROUND <hwnd>` command (AttachThreadInput to the foreground thread, then SetForegroundWindow), called from `showOverlay()` on win32. **Never verify this with `win.isFocused()` — it lies. Verify with `GetForegroundWindow()` or a real keystroke.** |
 
 ## Explicitly out of scope (v1)
 

@@ -1009,9 +1009,19 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-api.onItemsChanged(setItems);
-api.getItems().then(setItems);
+// ignore pushed updates until the initial snapshot settles, so a mutation
+// landing mid-load can't be overwritten by the older getItems() result
+let initialLoadDone = false;
+api.onItemsChanged((items) => {
+  if (initialLoadDone) setItems(items);
+});
+api.getItems().then((items) => {
+  initialLoadDone = true;
+  setItems(items);
+});
 ```
+
+Note: `api.addItem` returns `Promise<void>` — state always flows back via `onItemsChanged` (which returns an unsubscribe function; the single long-lived subscription here doesn't need it).
 
 - [ ] **Step 4: Verify manually**
 
@@ -1094,6 +1104,7 @@ app.on('will-quit', () => uIOhook.stop());
 Run: `npm start`
 Expected:
 - Double-tap Shift while ANY app is focused (Notepad, browser) → overlay toggles.
+- **Confirm the overlay takes keyboard focus when shown from the global hook while another app is foreground** — type a character and check it lands in the overlay input, not the other app. (Windows restricts SetForegroundWindow from a process that owns neither the foreground window nor the last input event; if focus doesn't take, try `win.showInactive()` + `win.moveTop()` or the alwaysOnTop toggle-cycle workaround.)
 - Shift+letter typing in other apps does NOT trigger it.
 - Holding Shift does NOT trigger it.
 - Quit from tray exits cleanly (process does not hang — if it hangs, the uIOhook.stop() call is missing).
@@ -1567,6 +1578,39 @@ if (existsSync(helperPath)) {
 (`SelectionCapturer.capture()` already returns null when the process isn't running, so double-shift degrades to plain overlay toggle.)
 
 (The global `uncaughtException`/`unhandledRejection` handlers originally planned here were pulled forward into Task 4's `main.ts` — do not add them a second time.)
+
+- [ ] **Step 1b: IPC sender validation + stored-item shape validation** (deferred from Task 4 review)
+
+In every `ipcMain.handle` callback, reject events from unexpected frames:
+
+```ts
+function isTrustedSender(e: Electron.IpcMainInvokeEvent): boolean {
+  return e.senderFrame === win?.webContents.mainFrame;
+}
+```
+
+Guard each handler with `if (!isTrustedSender(e)) return;` (change the ignored `_e` parameter to `e`).
+
+In `store.ts` `load()`, validate item shape instead of trusting `Array.isArray(parsed.items)` alone, and treat a `null`/non-object JSON root as corrupt (quarantine) rather than throwing through property access:
+
+```ts
+const parsed: unknown = JSON.parse(raw);
+const items =
+  parsed !== null && typeof parsed === 'object' && Array.isArray((parsed as { items?: unknown }).items)
+    ? ((parsed as { items: unknown[] }).items).filter(
+        (i): i is Item =>
+          i !== null &&
+          typeof i === 'object' &&
+          typeof (i as Item).id === 'string' &&
+          typeof (i as Item).text === 'string' &&
+          typeof (i as Item).done === 'boolean',
+      )
+    : null;
+if (items === null) throw new SyntaxError('unrecognized store shape'); // caught by the quarantine branch below
+this.items = items;
+```
+
+(Restructure so the quarantine catch wraps this shape check; add tests: `null` root quarantines, `{}` root quarantines, valid root with one malformed item drops just that item.)
 
 - [ ] **Step 2: Write `README.md`**
 

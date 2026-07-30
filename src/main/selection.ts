@@ -2,8 +2,6 @@ import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
 import { clipboard } from 'electron';
 
 const REQUEST_TIMEOUT_MS = 1500;
-/** synthesized copy needs a beat to land in the clipboard before we read it */
-const CLIPBOARD_SETTLE_MS = 200;
 /** cap captured text — the store rewrites the whole file on every mutation */
 const MAX_CAPTURE_CHARS = 10_000;
 /** a helper that dies repeatedly is broken, not unlucky: stop after this many
@@ -137,30 +135,13 @@ export class SelectionCapturer {
       if (text.trim()) return text;
     }
 
-    // no helper → no COPYKEY either; touching the clipboard would wipe it for nothing
-    if (!this.proc) return null;
-
-    // fallback: clipboard trick — only when every flavor on the clipboard is
-    // one we can snapshot and put back. An image or file-list (text/uri-list)
-    // would be silently destroyed by clear() + writeText().
-    const RESTORABLE = ['text/plain', 'text/html', 'text/rtf'];
-    const formats = clipboard.availableFormats();
-    if (!formats.every((f) => RESTORABLE.includes(f))) return null;
-
-    const saved = {
-      text: clipboard.readText(),
-      html: clipboard.readHTML(),
-      rtf: clipboard.readRTF(),
-    };
-    clipboard.clear();
-    try {
-      const copyRes = await this.request('COPYKEY');
-      if (copyRes !== 'OK') return null;
-      await new Promise((r) => setTimeout(r, CLIPBOARD_SETTLE_MS));
-      const grabbed = clipboard.readText().slice(0, MAX_CAPTURE_CHARS);
-      return grabbed.trim() ? grabbed : null;
-    } finally {
-      clipboard.write(saved); // restore every flavor, even on a throw
-    }
+    // No readable selection. Fall back to whatever the user already copied.
+    //
+    // This used to synthesize Ctrl+C into the foreground app, which is hostile:
+    // in terminals Ctrl+C means interrupt, and reading the result required
+    // clearing the clipboard first, destroying any flavor we couldn't restore.
+    // Reading what's already there costs nothing and breaks nothing.
+    const text = clipboard.readText().slice(0, MAX_CAPTURE_CHARS);
+    return text.trim() ? text : null;
   }
 }

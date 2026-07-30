@@ -115,6 +115,10 @@ class SelectionHelper
         }
     }
 
+    const int SEARCH_MAX_NODES = 200;
+    const int SEARCH_MAX_DEPTH = 12;
+    static int searched;
+
     static string Capture()
     {
         try
@@ -122,27 +126,97 @@ class SelectionHelper
             AutomationElement el = AutomationElement.FocusedElement;
             if (el == null) return "ERR no-focused-element";
 
-            object patObj;
-            if (!el.TryGetCurrentPattern(TextPattern.Pattern, out patObj))
-                return "ERR no-text-pattern";
+            // fast path: the focused control exposes its own text (Win32 edit
+            // controls, WPF, browser address bars)
+            string direct = SelectionOf(el);
+            if (direct != null) return Ok(direct);
 
-            TextPattern tp = (TextPattern)patObj;
-            TextPatternRange[] ranges = tp.GetSelection();
-            if (ranges == null || ranges.Length == 0) return "ERR no-selection";
-
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < ranges.Length; i++)
+            // Chromium and Electron apps focus a container, while the selection
+            // lives on a Document node deeper in the tree, so search the window.
+            AutomationElement window = TopLevelOf(el);
+            if (window != null)
             {
-                sb.Append(ranges[i].GetText(-1));
+                searched = 0;
+                string found = SearchSelection(window, 0);
+                if (found != null) return Ok(found);
             }
-            string text = sb.ToString();
-            if (text.Length == 0) return "ERR empty-selection";
-
-            return "OK " + Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
+            return "ERR no-selection";
         }
         catch (Exception e)
         {
             return "ERR exception:" + e.GetType().Name;
         }
+    }
+
+    static string Ok(string text)
+    {
+        return "OK " + Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
+    }
+
+    /** The element's selected text, or null when it has no text pattern or no selection. */
+    static string SelectionOf(AutomationElement el)
+    {
+        object patObj;
+        if (!el.TryGetCurrentPattern(TextPattern.Pattern, out patObj)) return null;
+        try
+        {
+            TextPatternRange[] ranges = ((TextPattern)patObj).GetSelection();
+            if (ranges == null || ranges.Length == 0) return null;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < ranges.Length; i++) sb.Append(ranges[i].GetText(-1));
+            string text = sb.ToString();
+            return text.Length == 0 ? null : text;
+        }
+        catch
+        {
+            return null; // a provider that throws is one we skip, not a fatal error
+        }
+    }
+
+    static AutomationElement TopLevelOf(AutomationElement el)
+    {
+        try
+        {
+            TreeWalker walker = TreeWalker.ControlViewWalker;
+            AutomationElement cur = el;
+            while (cur != null && cur.Current.ControlType != ControlType.Window)
+            {
+                AutomationElement parent = walker.GetParent(cur);
+                if (parent == null || parent.Equals(AutomationElement.RootElement)) break;
+                cur = parent;
+            }
+            return cur;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /** Depth-first hunt for the first element holding a non-empty selection. */
+    static string SearchSelection(AutomationElement el, int depth)
+    {
+        if (el == null || depth > SEARCH_MAX_DEPTH || searched >= SEARCH_MAX_NODES) return null;
+        searched++;
+
+        string own = SelectionOf(el);
+        if (own != null) return own;
+
+        try
+        {
+            TreeWalker walker = TreeWalker.ControlViewWalker;
+            AutomationElement child = walker.GetFirstChild(el);
+            while (child != null && searched < SEARCH_MAX_NODES)
+            {
+                string found = SearchSelection(child, depth + 1);
+                if (found != null) return found;
+                child = walker.GetNextSibling(child);
+            }
+        }
+        catch
+        {
+            /* a subtree that refuses to walk is one we skip */
+        }
+        return null;
     }
 }

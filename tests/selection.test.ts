@@ -148,17 +148,41 @@ describe('SelectionCapturer.capture', () => {
     expect(clipboard.clear).not.toHaveBeenCalled();
   });
 
-  it('skips the clipboard fallback when the helper is gone', async () => {
+  it('falls back to the current clipboard when there is no selection', async () => {
+    vi.mocked(clipboard.readText).mockReturnValue('already copied');
+    const cap = makeCapturer();
+    const p = cap.capture();
+
+    say('ERR no-selection\n');
+
+    expect(await p).toBe('already copied');
+    // the fallback only reads: never synthesize a copy, never clear the clipboard
+    expect(clipboard.clear).not.toHaveBeenCalled();
+    expect(clipboard.write).not.toHaveBeenCalled();
+    expect(proc().stdin.write).not.toHaveBeenCalledWith('COPYKEY\n');
+    cap.stop();
+  });
+
+  it('returns null when neither the selection nor the clipboard has text', async () => {
+    vi.mocked(clipboard.readText).mockReturnValue('   ');
+    const cap = makeCapturer();
+    const p = cap.capture();
+
+    say('ERR no-selection\n');
+
+    expect(await p).toBeNull();
+    cap.stop();
+  });
+
+  it('falls back to the clipboard when the helper is gone', async () => {
+    vi.mocked(clipboard.readText).mockReturnValue('already copied');
     const cap = makeCapturer();
     const p = cap.capture();
 
     proc().emit('exit'); // resolves the pending CAPTURE with ERR helper-exited
 
-    expect(await p).toBeNull();
-    // no helper means no COPYKEY either: clearing the clipboard would destroy
-    // the user's data for nothing
+    expect(await p).toBe('already copied');
     expect(clipboard.clear).not.toHaveBeenCalled();
-    expect(clipboard.write).not.toHaveBeenCalled();
     cap.stop();
   });
 });

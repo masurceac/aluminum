@@ -28,6 +28,8 @@ let capturer: SelectionCapturer;
 let isQuitting = false;
 /** when the overlay last hid itself on blur — guards the tray-click race */
 let lastHiddenAt = 0;
+/** when the overlay was last shown — guards the foreground-handoff blur bounce */
+let shownAt = 0;
 
 const WIN_W = 360;
 const WIN_H = 480;
@@ -36,6 +38,8 @@ const DOUBLE_TAP_MS = 300;
 /** clicking the tray blurs (and hides) the overlay before the click handler
  * runs; a show within this window would make tray-click unable to hide */
 const TRAY_BLUR_RACE_MS = 300;
+/** how long the OS foreground handoff may take to stop bouncing focus */
+const SHOW_SETTLE_MS = 400;
 
 // 16x16 solid-color tray icon (base64 PNG) — placeholder, any icon works
 const TRAY_PNG =
@@ -80,6 +84,18 @@ function createWindow(): void {
   win.loadFile(join(__dirname, 'index.html'));
   win.on('blur', () => {
     if (!win?.isVisible()) return; // already hidden explicitly — not a blur-hide
+    // Handing us the foreground bounces focus once on its way in, and that
+    // bounce arrives as a blur — hiding on it makes the first double-Shift
+    // flash the overlay and vanish. Let the handoff settle, then re-check.
+    if (Date.now() - shownAt < SHOW_SETTLE_MS) {
+      setTimeout(() => {
+        if (win?.isVisible() && !win.isFocused()) {
+          lastHiddenAt = Date.now();
+          win.hide();
+        }
+      }, SHOW_SETTLE_MS);
+      return;
+    }
     lastHiddenAt = Date.now();
     win.hide();
   });
@@ -102,6 +118,7 @@ function showOverlay(): void {
   const x = Math.max(wa.x, Math.min(cursor.x - WIN_W / 2, wa.x + wa.width - WIN_W));
   const y = Math.max(wa.y, Math.min(cursor.y + 16, wa.y + wa.height - WIN_H));
   win.setPosition(Math.round(x), Math.round(y));
+  shownAt = Date.now();
   win.show();
   win.focus();
   app.focus({ steal: true }); // macOS: activate the app, not just the window
@@ -236,7 +253,9 @@ async function onDoubleShift(): Promise<void> {
   try {
     // capture BEFORE showing the overlay — the foreign app must still be focused
     const text = await capturer.capture();
-    if (text) {
+    // the clipboard fallback returns the same text every time until the user
+    // copies something new; don't stack identical items on repeat double-Shifts
+    if (text && text !== store.getAll()[0]?.text) {
       store.add(text, 'capture');
       pushItems();
     }

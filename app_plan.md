@@ -1277,13 +1277,18 @@ if (-not (Test-Path $csc)) { throw "csc.exe not found at $csc" }
 $gac = Join-Path $env:WINDIR "Microsoft.NET\assembly\GAC_MSIL"
 
 function Find-Asm([string]$name) {
-    $dll = Get-ChildItem (Join-Path $gac $name) -Recurse -Filter "$name.dll" |
+    $dll = Get-ChildItem (Join-Path $gac $name) -Recurse -Filter "$name.dll" -ErrorAction SilentlyContinue |
+        Where-Object { $_.Directory.Name -like "v4.0_*" } |
+        Sort-Object FullName -Descending |
         Select-Object -First 1
     if ($null -eq $dll) { throw "Assembly $name not found in GAC" }
     return $dll.FullName
 }
 
-$refs = @("UIAutomationClient", "UIAutomationTypes", "WindowsBase", "System.Windows.Forms") |
+# System.Windows.Forms comes free via csc's default response file (csc.rsp);
+# referencing it again from the GAC trips CS1703 (duplicate identity).
+# ASCII only in this file: PowerShell 5.1 reads BOM-less files as ANSI.
+$refs = @("UIAutomationClient", "UIAutomationTypes", "WindowsBase") |
     ForEach-Object { "/r:`"$(Find-Asm $_)`"" }
 
 $src = Join-Path $PSScriptRoot "SelectionHelper.cs"

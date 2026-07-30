@@ -29,6 +29,8 @@ class SelectionHelper
             {
                 try
                 {
+                    // NOTE: "OK" means the keystroke was POSTED, not that a copy
+                    // happened — UIPI silently drops input to elevated windows.
                     SendKeys.SendWait("^c");
                     Console.WriteLine("OK");
                 }

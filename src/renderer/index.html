@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'">
@@ -8,7 +8,7 @@
 </head>
 <body>
   <input id="new-item" type="text" placeholder="Type and press Enter…" autofocus>
-  <ul id="list"></ul>
+  <ul id="list" role="listbox" aria-label="Captured items"></ul>
   <script src="renderer.js"></script>
 </body>
 </html>

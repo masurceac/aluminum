@@ -1649,7 +1649,20 @@ if (existsSync(helperPath)) {
 
 (The global `uncaughtException`/`unhandledRejection` handlers originally planned here were pulled forward into Task 4's `main.ts` — do not add them a second time.)
 
-- [ ] **Step 1a: Renderer polish** (deferred from Task 5 review)
+- [x] **Step 1a: Renderer polish** (deferred from Task 5 review)
+
+> **As-built:** shipped as `:root` custom properties (`--bg`, `--bg-input`, `--bg-selected`,
+> `--border`, `--fg`, `--accent` #7aa2f7 ≈6.5:1, `--fg-muted` #9a9aa5 ≈6.0:1); `.item` carries a
+> transparent 3px left border that turns `--accent` when selected (left padding drops to 9px so
+> content doesn't shift); `.done` opacity 0.45 → 0.6; `#new-item` loses `outline: none` for an
+> inset `:focus-visible` accent ring (the ✕ gets one too, since it is tabbable but hidden until
+> hover/selection); `.text` uses the `-webkit-box` / `-webkit-line-clamp: 4` pattern plus
+> `user-select: none`; `.empty` opacity 0.4 → 0.6 (same contrast failure class). `index.html`
+> gains `lang="en"` and `role="listbox"` + `aria-label` on `#list`; rows get `role="option"` +
+> `aria-selected`, the ✕ gets `aria-label="Delete item"`, and the empty-state row is
+> `role="presentation"`. `window.aluminum` is now typed optional: the listener registrations and
+> initial load moved into a `start()` function called only when the bridge exists — otherwise the
+> list renders "Preload failed — restart Aluminum." and the input is disabled.
 
 - Contrast: `.item.selected` needs a ≥3:1 state indicator (add a left accent border), `.done` opacity and `.del` color fall below 4.5:1, and `#new-item { outline: none }` needs a `:focus-visible` replacement ring.
 - Accessibility: `aria-label="Delete item"` on `.del`, `aria-selected` on rows, `lang` on `<html>`.

@@ -110,6 +110,16 @@ describe('DoubleTapDetector', () => {
     expect(det.keydown(SHIFT_L)).toBe(false);
   });
 
+  it('does not fire after both shifts overlap, regardless of release order', () => {
+    const { det, tick } = makeDetector();
+    det.keydown(SHIFT_L);
+    det.keydown(SHIFT_R); // second shift during the press taints it
+    det.keyup(SHIFT_L); // first-pressed released first
+    det.keyup(SHIFT_R);
+    tick(50);
+    expect(det.keydown(SHIFT_R)).toBe(false);
+  });
+
   it('reset() clears an in-progress sequence', () => {
     const { det, tick } = makeDetector();
     det.keydown(SHIFT_L);

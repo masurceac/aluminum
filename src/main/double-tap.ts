@@ -43,7 +43,9 @@ export class DoubleTapDetector {
     }
     if (this.downCode !== null) {
       // a target key is already held: this is either auto-repeat of that key,
-      // or the other shift being tapped while it is held — neither can fire
+      // or the other shift being tapped while it is held — neither can fire,
+      // and a second target key during this press means it is not a clean tap
+      if (code !== this.downCode) this.sawOtherKey = true;
       return false;
     }
     const fired =

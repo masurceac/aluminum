@@ -11,9 +11,11 @@ import {
   systemPreferences,
 } from 'electron';
 import { join } from 'node:path';
+import { existsSync } from 'node:fs';
 import { uIOhook, UiohookKey } from 'uiohook-napi';
 import { DoubleTapDetector } from './double-tap';
 import { ItemStore } from './store';
+import { SelectionCapturer } from './selection';
 
 // a stray exception must not kill the resident tray process
 process.on('uncaughtException', (err) => console.error('uncaughtException', err));
@@ -22,6 +24,7 @@ process.on('unhandledRejection', (err) => console.error('unhandledRejection', er
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let store: ItemStore;
+let capturer: SelectionCapturer;
 let isQuitting = false;
 /** when the overlay last hid itself on blur — guards the tray-click race */
 let lastHiddenAt = 0;
@@ -176,7 +179,7 @@ function setupGlobalHook(): void {
   uIOhook.on('keydown', (e) => {
     try {
       if (detector.keydown(e.keycode)) {
-        onDoubleShift();
+        void onDoubleShift().catch((err) => console.error('double-shift failed', err));
       }
     } catch (err) {
       console.error('double-shift handler failed', err);
@@ -192,9 +195,27 @@ function setupGlobalHook(): void {
   }
 }
 
-function onDoubleShift(): void {
-  // Task 9 replaces this with capture-then-show
-  toggleOverlay();
+let capturing = false;
+
+async function onDoubleShift(): Promise<void> {
+  if (capturing) return;
+  // if the overlay itself is focused, double-shift just hides it
+  if (win?.isVisible() && win.isFocused()) {
+    win.hide();
+    return;
+  }
+  capturing = true;
+  try {
+    // capture BEFORE showing the overlay — the foreign app must still be focused
+    const text = await capturer.capture();
+    if (text) {
+      store.add(text, 'capture');
+      pushItems();
+    }
+  } finally {
+    capturing = false;
+  }
+  showOverlay();
 }
 
 const gotLock = app.requestSingleInstanceLock();
@@ -214,10 +235,22 @@ if (!gotLock) {
     createWindow();
     setupTray();
     setupGlobalHook();
+
+    const helperBinary =
+      process.platform === 'win32' ? 'SelectionHelper.exe' : 'SelectionHelper';
+    const helperPath = join(app.getAppPath(), 'helper', helperBinary);
+    capturer = new SelectionCapturer(helperPath);
+    if (existsSync(helperPath)) {
+      capturer.start();
+    } else {
+      // capture() degrades to null; double-shift still toggles the overlay
+      console.warn(`${helperBinary} not built — run \`npm run helper\`. Capture disabled.`);
+    }
   });
 
   app.on('will-quit', () => {
     uIOhook.stop();
+    capturer?.stop();
   });
 
   // tray app: don't quit when the window is hidden/closed

@@ -328,6 +328,8 @@ export class DoubleTapDetector {
   private isDown = false;
   /** another key was pressed while target key was down */
   private dirty = false;
+  /** the current press already fired; its keyup must not seed a new sequence */
+  private firedOnThisPress = false;
 
   constructor(opts: DoubleTapOptions) {
     this.codes = new Set(opts.codes);
@@ -352,6 +354,7 @@ export class DoubleTapDetector {
       this.now() - this.lastCleanTapUp <= this.windowMs;
     this.isDown = true;
     this.dirty = false;
+    this.firedOnThisPress = fired;
     if (fired) {
       this.lastCleanTapUp = null; // consume the sequence
       return true;
@@ -362,13 +365,14 @@ export class DoubleTapDetector {
   /** Feed a keyup. */
   keyup(code: number): void {
     if (!this.codes.has(code)) return;
-    if (this.isDown && !this.dirty) {
+    if (this.isDown && !this.dirty && !this.firedOnThisPress) {
       this.lastCleanTapUp = this.now();
     } else {
       this.lastCleanTapUp = null;
     }
     this.isDown = false;
     this.dirty = false;
+    this.firedOnThisPress = false;
   }
 }
 ```

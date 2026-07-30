@@ -64,17 +64,24 @@ function createWindow(): void {
   win.setAlwaysOnTop(true, 'screen-saver');
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); // macOS spaces
   win.loadFile(join(__dirname, 'index.html'));
-  win.on('blur', () => win?.hide());
+  win.on('blur', () => {
+    lastHiddenAt = Date.now();
+    win?.hide();
+  });
 }
+
+/** when the overlay last hid itself on blur — guards the tray-click race */
+let lastHiddenAt = 0;
 
 export function showOverlay(): void {
   if (!win) return;
-  // position near the cursor, clamped to the work area
+  // position near the cursor, clamped to the work area (work-area origin wins
+  // when the area is smaller than the window, so the top-left stays reachable)
   const cursor = screen.getCursorScreenPoint();
   const display = screen.getDisplayNearestPoint(cursor);
   const wa = display.workArea;
-  const x = Math.min(Math.max(cursor.x - WIN_W / 2, wa.x), wa.x + wa.width - WIN_W);
-  const y = Math.min(Math.max(cursor.y + 16, wa.y), wa.y + wa.height - WIN_H);
+  const x = Math.max(wa.x, Math.min(cursor.x - WIN_W / 2, wa.x + wa.width - WIN_W));
+  const y = Math.max(wa.y, Math.min(cursor.y + 16, wa.y + wa.height - WIN_H));
   win.setPosition(Math.round(x), Math.round(y));
   win.show();
   win.focus();
@@ -82,8 +89,15 @@ export function showOverlay(): void {
 
 function toggleOverlay(): void {
   if (!win) return;
-  if (win.isVisible()) win.hide();
-  else showOverlay();
+  if (win.isVisible()) {
+    win.hide();
+  } else if (Date.now() - lastHiddenAt < 300) {
+    // clicking the tray icon blurs the window first, which already hid it —
+    // re-showing here would make tray-click unable to ever hide the overlay
+    return;
+  } else {
+    showOverlay();
+  }
 }
 
 function pushItems(): void {

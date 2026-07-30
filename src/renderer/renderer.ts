@@ -77,8 +77,12 @@ function render(): void {
 }
 
 function setItems(next: Item[]): void {
+  const prevIndex = indexOfSelected(); // index in the OLD list
   items = next;
-  if (selectedId !== null && !items.some((i) => i.id === selectedId)) selectedId = null;
+  if (selectedId !== null && !items.some((i) => i.id === selectedId)) {
+    // the selected row was removed: keep the slot so repeat-Delete works
+    selectAt(Math.min(prevIndex, items.length - 1));
+  }
   render();
 }
 

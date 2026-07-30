@@ -988,8 +988,12 @@ function render(): void {
 }
 
 function setItems(next: Item[]): void {
+  const prevIndex = indexOfSelected(); // index in the OLD list
   items = next;
-  if (selectedId !== null && !items.some((i) => i.id === selectedId)) selectedId = null;
+  if (selectedId !== null && !items.some((i) => i.id === selectedId)) {
+    // the selected row was removed: keep the slot so repeat-Delete works
+    selectAt(Math.min(prevIndex, items.length - 1));
+  }
   render();
 }
 
@@ -1079,7 +1083,9 @@ Expected:
 - Empty state shows the hint text.
 - Typing text + Enter adds an item at the top; it persists across app restarts (check `%APPDATA%\aluminum\items.json` exists).
 - Checkbox strikes item through; ✕ removes it.
-- ArrowDown from the input moves selection into the list; ArrowUp/Down navigate; Space toggles done; Delete removes.
+- ArrowDown from the input moves selection into the list; ArrowUp/Down navigate; Space toggles done; Delete (or Backspace) removes — and the selection stays on the row that slides into the deleted slot, so repeat-Delete clears down the list.
+- Clicking a checkbox or ✕ never strands the keyboard: focus returns to the input whenever nothing is selected.
+- Hiding and re-showing the overlay resets the selection and focuses the input.
 - Enter or Ctrl+C (Cmd+C on macOS) on a selected item hides the overlay; pasting in Notepad/TextEdit yields the item text.
 - Escape hides the overlay.
 
@@ -1153,7 +1159,7 @@ app.on('will-quit', () => uIOhook.stop());
 Run: `npm start`
 Expected:
 - Double-tap Shift while ANY app is focused (Notepad, browser) → overlay toggles.
-- **Confirm the overlay takes keyboard focus when shown from the global hook while another app is foreground** — type a character and check it lands in the overlay input, not the other app. (Windows restricts SetForegroundWindow from a process that owns neither the foreground window nor the last input event; if focus doesn't take, try `win.showInactive()` + `win.moveTop()` or the alwaysOnTop toggle-cycle workaround.)
+- **Confirm the overlay takes keyboard focus when shown from the global hook while another app is foreground** — type a character and check it lands in the overlay input, not the other app. (Windows restricts SetForegroundWindow from a process that owns neither the foreground window nor the last input event; if focus doesn't take, try `win.showInactive()` + `win.moveTop()` or the alwaysOnTop toggle-cycle workaround. If `showInactive` ends up being the path, the renderer's reset-on-show hangs on the window `focus` event, which then never fires — switch it to `document.addEventListener('visibilitychange', ...)` gated on `visibilityState === 'visible'`.)
 - Shift+letter typing in other apps does NOT trigger it.
 - Holding Shift does NOT trigger it.
 - Quit from tray exits cleanly (process does not hang — if it hangs, the uIOhook.stop() call is missing).

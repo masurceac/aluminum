@@ -116,30 +116,46 @@ function pushItems(): void {
   win?.webContents.send('items:changed', store.getAll());
 }
 
+/** the overlay's main frame is the only legitimate caller — anything else
+ * (a subframe, a stale webContents) must not reach the store or clipboard */
+function isTrustedSender(e: Electron.IpcMainInvokeEvent): boolean {
+  return e.senderFrame === win?.webContents.mainFrame;
+}
+
 function setupIpc(): void {
-  ipcMain.handle('items:get', () => store.getAll());
-  ipcMain.handle('items:add', (_e, text: unknown) => {
+  ipcMain.handle('items:get', (e) => {
+    if (!isTrustedSender(e)) return;
+    return store.getAll();
+  });
+  ipcMain.handle('items:add', (e, text: unknown) => {
+    if (!isTrustedSender(e)) return;
     // IPC payloads are untyped; a malformed message must not become a renderer rejection
     if (typeof text !== 'string' || !text.trim()) return;
     store.add(text, 'manual');
     pushItems(); // items:changed is the single source of truth for state
   });
-  ipcMain.handle('items:setDone', (_e, id: unknown, done: unknown) => {
+  ipcMain.handle('items:setDone', (e, id: unknown, done: unknown) => {
+    if (!isTrustedSender(e)) return;
     if (typeof id !== 'string' || typeof done !== 'boolean') return;
     store.setDone(id, done);
     pushItems();
   });
-  ipcMain.handle('items:remove', (_e, id: unknown) => {
+  ipcMain.handle('items:remove', (e, id: unknown) => {
+    if (!isTrustedSender(e)) return;
     if (typeof id !== 'string') return;
     store.remove(id);
     pushItems();
   });
-  ipcMain.handle('clipboard:copyOut', (_e, text: unknown) => {
+  ipcMain.handle('clipboard:copyOut', (e, text: unknown) => {
+    if (!isTrustedSender(e)) return;
     if (typeof text !== 'string') return;
     clipboard.writeText(text);
     win?.hide();
   });
-  ipcMain.handle('overlay:hide', () => win?.hide());
+  ipcMain.handle('overlay:hide', (e) => {
+    if (!isTrustedSender(e)) return;
+    win?.hide();
+  });
 }
 
 function setupTray(): void {

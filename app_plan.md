@@ -1716,7 +1716,13 @@ this.items = items;
 
 (Restructure so the quarantine catch wraps this shape check; add tests: `null` root quarantines, `{}` root quarantines, valid root with one malformed item drops just that item.)
 
-- [ ] **Step 2: Write `README.md`**
+- [x] **Step 2: Write `README.md`**
+
+> **As-built:** the shipped README follows this outline but is written against the delivered
+> behavior rather than the snippet below — full keyboard table (Delete/Backspace, Space,
+> Enter/Ctrl+C/Cmd+C, Escape, double-shift-while-focused hides), the clipboard fallback's
+> restore/skip rules, the `.corrupt-<timestamp>` quarantine, per-platform helper builds, a
+> Development section, and an explicit macOS deferred-verification status.
 
 ```markdown
 # Aluminum

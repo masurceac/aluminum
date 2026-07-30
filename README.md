@@ -46,9 +46,14 @@ In the overlay:
 | `Escape` | hide the overlay |
 
 The mouse works as well: click to select, click the checkbox to toggle done,
-click ✕ to remove, double-click a row to copy it out. Clicking away (blur) or
-clicking the tray / menu-bar icon also hides the overlay; the tray icon's
-context menu has Show / Hide and Quit.
+hover a row to reveal its copy and ✕ buttons, double-click a row to copy it
+out. Clicking away (blur) or clicking the tray / menu-bar icon also hides the
+overlay; the tray icon's context menu has Show / Hide and Quit.
+
+The window itself is a frosted-glass panel: drag it by the titlebar, resize it
+from any edge, and use the titlebar buttons to minimize (hide to tray) or
+maximize/restore. Rows show where each item came from — ⇧ for captured, ↵ for
+typed — plus its age; light and dark themes follow the system.
 
 Newest items are at the top. Deleting the selected row keeps the selection on
 whatever slides into its place, so repeated `Delete` clears down the list.

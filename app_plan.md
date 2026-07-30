@@ -841,6 +841,30 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 > `tsconfig.json` remains a loose editor-facing config — only `npm run typecheck` enforces the
 > renderer/node boundary. The renderer must import types ONLY from `../shared/api`.
 
+> **As-built (2026-07-30, visual redesign):** the renderer was restyled to the "machined metal
+> & frosted glass" design (source of record: `design/Aluminum Prototype.dc.html`). Still vanilla
+> TS/CSS — no React/Tailwind/shadcn. Key facts:
+> - **Fonts:** IBM Plex Sans/Mono bundled from `@fontsource/*` devDeps; `scripts/build.mjs`
+>   copies the five latin woff2 files into `dist/fonts/`, `@font-face` in style.css.
+> - **Theme:** warm light/dark palettes via CSS custom properties keyed off
+>   `prefers-color-scheme`; amber accent (`#c2510a` light / `#f0872d` dark).
+> - **Glass:** `backgroundMaterial: 'acrylic'` + `backgroundColor: '#00000000'` on win32,
+>   `vibrancy: 'under-window'` on macOS; the renderer paints translucent `--glass` over it.
+>   Where the material is unavailable the window background shows and the UI reads solid.
+> - **New chrome:** drag-region titlebar (`-webkit-app-region`) with brand mark, minimize
+>   (→ `overlay:hide`) and maximize (→ new `overlay:toggleMaximize` IPC) buttons; window is
+>   `resizable` with 320×400 minimum; `showOverlay()` clamps with live `getBounds()` and skips
+>   repositioning while maximized. Footer status line (count · done + key hints). Rows have a
+>   meta column (⇧ capture / ↵ manual glyph + relative age from `createdAt`) that swaps to
+>   copy/delete buttons on hover/selection; keyboard-selected row = accent rail + tint and
+>   unclamps to full text; done = accent-filled checkbox (no strikethrough). Mono treatment
+>   for code/URL-looking items. Summon animation on every `focus`.
+> - **Pitfalls encountered (do not regress):** `::before/::after` never render on `<input>`,
+>   so the check glyph is a per-theme data-URI `background-image` (`--check`); that requires
+>   `img-src 'self' data:` in the CSP meta tag. When testing visibility with injected input,
+>   remember the OWNER of the desktop can dismiss the overlay involuntarily — verify with
+>   `showInactive()` at a fixed position (no focus steal) or while the user is away.
+
 **Files:**
 - Modify: `src/renderer/index.html`, `src/renderer/renderer.ts`, `src/renderer/style.css` (replace placeholders)
 

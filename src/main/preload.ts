@@ -11,6 +11,8 @@ const api: AluminumApi = {
   /** copy text to system clipboard and hide the overlay */
   copyOut: (text: string): Promise<void> => ipcRenderer.invoke('clipboard:copyOut', text),
   hide: (): Promise<void> => ipcRenderer.invoke('overlay:hide'),
+  /** titlebar maximize button — expands the overlay in place and back */
+  toggleMaximize: (): Promise<void> => ipcRenderer.invoke('overlay:toggleMaximize'),
   /** returns an unsubscribe function */
   onItemsChanged: (cb: (items: Item[]) => void): (() => void) => {
     const handler = (_e: unknown, items: Item[]) => cb(items);

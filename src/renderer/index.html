@@ -2,13 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'">
+  <!-- img-src data: carries the inline SVG check glyph in style.css -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:">
   <title>Aluminum</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <input id="new-item" type="text" placeholder="Type and press Enter…" autofocus>
+  <header id="titlebar">
+    <div id="brand">
+      <div id="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="12" height="12">
+          <polyline points="3.4,7.4 8,3 12.6,7.4" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <polyline points="3.4,13 8,8.6 12.6,13" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></polyline>
+        </svg>
+      </div>
+      <span id="brand-name">Aluminum</span>
+    </div>
+    <button id="win-min" title="Minimize" aria-label="Minimize"><span></span></button>
+    <button id="win-max" title="Maximize" aria-label="Maximize"><span></span></button>
+  </header>
+  <div id="input-wrap">
+    <input id="new-item" type="text" placeholder="Type and press Enter…" autofocus>
+  </div>
   <ul id="list" role="listbox" aria-label="Captured items"></ul>
+  <footer id="status">
+    <span id="status-left"></span>
+    <span id="status-right"></span>
+  </footer>
   <script src="renderer.js"></script>
 </body>
 </html>

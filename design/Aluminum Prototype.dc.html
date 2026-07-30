@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased;background:#cdbfae;}
+input{font-family:inherit;}
+button{font-family:inherit;border:0;background:none;padding:0;cursor:pointer;color:inherit;}
+a{color:#b4530f;text-decoration:none;}
+a:hover{color:#8f3f0a;}
+</style>
+</helmet>
+<div style="--desk:radial-gradient(120% 95% at 22% 4%, #f0e4d5 0%, #dccbb6 44%, #bda78e 100%);--blob1:rgba(255,255,255,0.55);--blob2:rgba(194,81,10,0.20);--glass:rgba(253,251,248,0.74);--glass-solid:#fdfbf8;--fg:#221c17;--mfg:#7d7168;--faint:rgba(34,28,23,0.09);--cb:rgba(34,28,23,0.24);--hover:rgba(34,28,23,0.05);--field:rgba(34,28,23,0.045);--accent:#c2510a;--on-accent:#fffaf5;--danger:#b3321a;--shadow:0 30px 70px -22px rgba(60,40,24,0.55), 0 10px 24px -12px rgba(60,40,24,0.35);--rim:inset 0 0 0 0.5px rgba(255,255,255,0.75), inset 0 1px 0 rgba(255,255,255,0.9);--chip:rgba(255,255,255,0.55);--chip-line:rgba(60,40,24,0.14);min-height:100%;">
+  <div style="--accent:{{accent}};--desk:{{vDesk}};--blob1:{{vBlob1}};--blob2:{{vBlob2}};--glass:{{vGlass}};--glass-solid:{{vGlassSolid}};--fg:{{vFg}};--mfg:{{vMfg}};--faint:{{vFaint}};--cb:{{vCb}};--hover:{{vHover}};--field:{{vField}};--on-accent:{{vOnAccent}};--danger:{{vDanger}};--shadow:{{vShadow}};--rim:{{vRim}};--chip:{{vChip}};--chip-line:{{vChipLine}};position:relative;min-height:100vh;background:var(--desk);display:flex;align-items:center;justify-content:center;padding:40px 40px 120px;overflow:hidden;">
+
+    <div style="position:absolute;left:8%;top:6%;width:520px;height:520px;border-radius:50%;background:var(--blob1);filter:blur(90px);pointer-events:none;"></div>
+    <div style="position:absolute;right:6%;bottom:10%;width:620px;height:460px;border-radius:50%;background:var(--blob2);filter:blur(110px);pointer-events:none;"></div>
+    <div style="position:absolute;left:50%;top:12%;width:760px;height:380px;border-radius:50%;background:var(--blob1);opacity:0.5;filter:blur(120px);transform:translateX(-50%);pointer-events:none;"></div>
+
+    <div style="width:var(--w,320px);height:var(--h,400px);--w:{{winW}};--h:{{winH}};--col:{{colW}};--padx:{{padX}};transform:scale({{winScale}}) translateY({{winY}});opacity:{{winOp}};transition:transform 230ms cubic-bezier(.18,.92,.28,1.02), opacity 150ms ease, width 260ms cubic-bezier(.2,.85,.2,1), height 260ms cubic-bezier(.2,.85,.2,1);position:relative;display:flex;flex-direction:column;background:var(--glass);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border-radius:15px;box-shadow:var(--shadow), var(--rim);color:var(--fg);overflow:hidden;">
+
+      <div style="display:flex;align-items:center;gap:3px;height:36px;padding:0 7px 0 11px;flex:none;cursor:default;user-select:none;">
+        <div style="flex:1;display:flex;align-items:center;gap:9px;">
+          <div style="width:18px;height:18px;border-radius:6px;background:linear-gradient(155deg, color-mix(in srgb, var(--accent) 70%, #ffffff), var(--accent));box-shadow:0 1px 3px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 1px 0 rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 16 16" width="12" height="12" style="display:block;">
+              <polyline points="3.4,7.4 8,3 12.6,7.4" fill="none" style="stroke:var(--on-accent);stroke-width:2.1px;stroke-linecap:round;stroke-linejoin:round;"></polyline>
+              <polyline points="3.4,13 8,8.6 12.6,13" fill="none" style="stroke:var(--on-accent);stroke-width:2.1px;stroke-linecap:round;stroke-linejoin:round;opacity:0.5;"></polyline>
+            </svg>
+          </div>
+          <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;font-variant-caps:all-small-caps;color:var(--fg);opacity:0.72;">Aluminum</div>
+        </div>
+        <button onClick="{{ onMinimize }}" title="Minimize" style="width:25px;height:25px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background 120ms;" style-hover="background:var(--hover);" style-active="background:var(--faint);">
+          <div style="width:9px;height:1.5px;border-radius:1px;background:var(--mfg);"></div>
+        </button>
+        <button onClick="{{ onMaximize }}" title="Maximize" style="width:25px;height:25px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background 120ms;" style-hover="background:var(--hover);" style-active="background:var(--faint);">
+          <div style="width:9px;height:9px;border:1.5px solid var(--mfg);border-radius:3px;"></div>
+        </button>
+      </div>
+
+      <div style="padding:0 var(--padx,8px) 8px;flex:none;">
+        <div style="max-width:var(--col,100%);margin:0 auto;display:flex;align-items:center;height:36px;padding:0 11px;border-radius:10px;background:var(--field);box-shadow:{{ringShadow}};transition:box-shadow 130ms ease;opacity:{{inputOpacity}};">
+          <input ref="{{ inputRef }}" placeholder="Type and press Enter…" disabled="{{ inputDisabled }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" style="flex:1;min-width:0;border:0;outline:0;background:transparent;font-size:14px;letter-spacing:-0.005em;color:var(--fg);caret-color:var(--accent);padding:0;">
+        </div>
+      </div>
+
+      <sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;position:relative;min-height:0;">
+          <div onScroll="{{ onScroll }}" style="position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--cb) transparent;padding:0 var(--padx,8px) 10px;">
+            <div style="max-width:var(--col,100%);margin:0 auto;display:flex;flex-direction:column;gap:1px;">
+              <sc-for list="{{ rows }}" as="it" hint-placeholder-count="3">
+                <div onMouseEnter="{{ it.onEnter }}" onMouseLeave="{{ it.onLeave }}" onClick="{{ it.onSelect }}" style="--row-bg:{{it.bg}};--rail:{{it.rail}};--act:{{it.act}};--meta:{{it.meta}};--txt:{{it.txt}};--pe:{{it.pe}};position:relative;display:flex;align-items:flex-start;gap:10px;min-height:40px;padding:9px 6px 9px 11px;border-radius:11px;background:var(--row-bg,transparent);transition:background 110ms ease;cursor:default;flex:none;">
+                  <div style="position:absolute;left:3px;top:9px;bottom:9px;width:2.5px;border-radius:2px;background:var(--accent);opacity:var(--rail,0);transition:opacity 120ms ease;"></div>
+                  <button onClick="{{ it.onToggle }}" style="--cbbg:{{it.cbbg}};--cbc:{{it.cbc}};--dash:{{it.dash}};width:17px;height:17px;border-radius:6px;border:1.5px solid var(--cbc,var(--cb));background:var(--cbbg,transparent);flex:none;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:background 150ms cubic-bezier(.34,1.5,.64,1), border-color 150ms ease;">
+                    <svg viewBox="0 0 12 12" width="11" height="11" style="display:block;overflow:visible;">
+                      <polyline points="2,6.2 4.7,8.9 10,3.3" fill="none" stroke="currentColor" style="stroke:var(--on-accent);stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:14;stroke-dashoffset:var(--dash,14);transition:stroke-dashoffset 210ms cubic-bezier(.5,1.4,.6,1) 40ms;"></polyline>
+                    </svg>
+                  </button>
+                  <div style="flex:1;min-width:0;padding-top:1px;">
+                    <div style="--ff:{{it.ff}};--fs:{{it.fs}};--wb:{{it.wb}};--lc:{{it.lc}};--mh:{{it.mh}};font-family:var(--ff);font-size:var(--fs,13.5px);line-height:1.42;letter-spacing:-0.005em;color:var(--txt,var(--fg));word-break:var(--wb,normal);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--lc,2);max-height:var(--mh,39px);overflow:hidden;text-wrap:pretty;transition:color 150ms ease;">{{ it.text }}</div>
+                  </div>
+                  <div style="position:relative;flex:none;width:52px;height:24px;margin-top:-1px;">
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:6px;font-size:12px;font-variant-caps:all-small-caps;letter-spacing:0.05em;color:var(--mfg);opacity:var(--meta,1);transition:opacity 110ms ease;pointer-events:none;">
+                      <div style="font-size:11px;opacity:0.8;font-variant-caps:normal;">{{ it.glyph }}</div>
+                      <div style="font-variant-numeric:tabular-nums;">{{ it.t }}</div>
+                    </div>
+                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:1px;opacity:var(--act,0);transition:opacity 110ms ease;pointer-events:var(--pe,auto);">
+                      <button onClick="{{ it.onCopy }}" title="Copy" style="width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--mfg);transition:background 110ms, color 110ms;" style-hover="background:var(--hover);color:var(--accent);">
+                        <div style="position:relative;width:12px;height:12px;">
+                          <div style="position:absolute;left:3.5px;top:0;width:8.5px;height:8.5px;border:1.3px solid currentColor;border-radius:2.5px;"></div>
+                          <div style="position:absolute;left:0;top:3.5px;width:8.5px;height:8.5px;border:1.3px solid currentColor;border-radius:2.5px;background:var(--glass-solid);"></div>
+                        </div>
+                      </button>
+                      <button onClick="{{ it.onDelete }}" title="Delete" style="width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mfg);transition:background 110ms, color 110ms;" style-hover="background:var(--hover);color:var(--danger);">✕</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:26px;background:linear-gradient(to top, var(--glass-solid), transparent);opacity:{{fadeOp}};transition:opacity 160ms ease;pointer-events:none;"></div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:0 30px 14px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="display:flex;align-items:center;height:24px;padding:0 9px;border-radius:7px;background:var(--field);box-shadow:inset 0 0 0 0.5px var(--faint), 0 1px 0 rgba(255,255,255,0.4);font-size:12px;font-weight:500;color:var(--mfg);">⇧ Shift</div>
+            <div style="display:flex;align-items:center;height:24px;padding:0 9px;border-radius:7px;background:var(--field);box-shadow:inset 0 0 0 0.5px var(--faint), 0 1px 0 rgba(255,255,255,0.4);font-size:12px;font-weight:500;color:var(--mfg);">⇧ Shift</div>
+          </div>
+          <div style="font-size:13px;line-height:1.55;color:var(--mfg);text-align:center;text-wrap:pretty;max-width:230px;">Double-tap Shift in any app to capture selected text</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:0 34px 14px;">
+          <div style="width:24px;height:24px;border-radius:50%;border:1.5px solid var(--danger);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;line-height:1;">!</div>
+          <div style="font-size:13.5px;line-height:1.5;font-weight:600;text-align:center;text-wrap:pretty;">Preload failed — restart Aluminum</div>
+          <div style="font-size:12px;line-height:1.5;color:var(--mfg);text-align:center;">Quit from the tray icon and reopen.</div>
+        </div>
+      </sc-if>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;height:27px;padding:0 13px;flex:none;box-shadow:inset 0 0.5px 0 var(--faint);font-size:12px;font-variant-caps:all-small-caps;letter-spacing:0.05em;color:var(--mfg);">
+        <div style="color:{{statusColor}};">{{ statusLeft }}</div>
+        <div style="opacity:{{hintOp}};">{{ statusRight }}</div>
+      </div>
+    </div>
+
+    <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;background:var(--chip);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);box-shadow:0 12px 30px -12px rgba(40,26,14,0.45), inset 0 0 0 0.5px var(--chip-line);">
+      <div style="display:flex;gap:2px;padding:2px;border-radius:10px;background:var(--field);">
+        <button onClick="{{ onLight }}" style="--b:{{lightBg}};--c:{{lightFg}};height:26px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:500;font-variant-caps:all-small-caps;letter-spacing:0.06em;background:var(--b);color:var(--c);transition:background 120ms,color 120ms;">Light</button>
+        <button onClick="{{ onDark }}" style="--b:{{darkBg}};--c:{{darkFg}};height:26px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:500;font-variant-caps:all-small-caps;letter-spacing:0.06em;background:var(--b);color:var(--c);transition:background 120ms,color 120ms;">Dark</button>
+      </div>
+      <div style="width:1px;height:20px;background:var(--chip-line);"></div>
+      <div style="display:flex;gap:2px;">
+        <sc-for list="{{ presets }}" as="p" hint-placeholder-count="6">
+          <button onClick="{{ p.onClick }}" style="--b:{{p.bg}};--c:{{p.fg}};height:26px;padding:0 11px;border-radius:8px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:0.02em;background:var(--b);color:var(--c);transition:background 120ms,color 120ms;" style-hover="background:var(--hover);">{{ p.label }}</button>
+        </sc-for>
+      </div>
+      <div style="width:1px;height:20px;background:var(--chip-line);"></div>
+      <button onClick="{{ onReplay }}" style="height:26px;padding:0 12px;border-radius:8px;font-size:12px;font-weight:500;font-variant-caps:all-small-caps;letter-spacing:0.06em;color:var(--fg);opacity:0.75;transition:background 120ms,opacity 120ms;" style-hover="background:var(--hover);opacity:1;">↻ Replay summon</button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#c2510a&quot;,&quot;#b4880f&quot;,&quot;#0f766e&quot;,&quot;#9f1239&quot;],&quot;section&quot;:&quot;Theme&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;light&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;tsType&quot;:&quot;'light' | 'dark'&quot;,&quot;section&quot;:&quot;Theme&quot;}}">
+const THEMES = {
+  light: {
+    vDesk: 'radial-gradient(120% 95% at 22% 4%, #f0e4d5 0%, #dccbb6 44%, #bda78e 100%)',
+    vBlob1: 'rgba(255,255,255,0.55)', vBlob2: 'rgba(194,81,10,0.20)',
+    vGlass: 'rgba(253,251,248,0.74)', vGlassSolid: '#fdfbf8',
+    vFg: '#221c17', vMfg: '#7d7168', vFaint: 'rgba(34,28,23,0.09)',
+    vCb: 'rgba(34,28,23,0.24)', vHover: 'rgba(34,28,23,0.05)', vField: 'rgba(34,28,23,0.045)',
+    vOnAccent: '#fffaf5', vDanger: '#b3321a',
+    vShadow: '0 30px 70px -22px rgba(60,40,24,0.55), 0 10px 24px -12px rgba(60,40,24,0.35)',
+    vRim: 'inset 0 0 0 0.5px rgba(255,255,255,0.75), inset 0 1px 0 rgba(255,255,255,0.9)',
+    vChip: 'rgba(255,255,255,0.55)', vChipLine: 'rgba(60,40,24,0.14)',
+    accent: '#c2510a'
+  },
+  dark: {
+    vDesk: 'radial-gradient(120% 95% at 22% 4%, #2e2721 0%, #1b1613 46%, #0d0b09 100%)',
+    vBlob1: 'rgba(255,214,166,0.10)', vBlob2: 'rgba(240,135,45,0.16)',
+    vGlass: 'rgba(38,32,28,0.72)', vGlassSolid: '#262019',
+    vFg: '#f6efe7', vMfg: '#a2958a', vFaint: 'rgba(255,255,255,0.08)',
+    vCb: 'rgba(246,239,231,0.26)', vHover: 'rgba(255,255,255,0.06)', vField: 'rgba(255,255,255,0.055)',
+    vOnAccent: '#1d1410', vDanger: '#ef8a6d',
+    vShadow: '0 34px 80px -24px rgba(0,0,0,0.8), 0 12px 28px -14px rgba(0,0,0,0.6)',
+    vRim: 'inset 0 0 0 0.5px rgba(255,255,255,0.10), inset 0 1px 0 rgba(255,255,255,0.10)',
+    vChip: 'rgba(46,39,34,0.66)', vChipLine: 'rgba(255,255,255,0.12)',
+    accent: '#f0872d'
+  }
+};
+
+const SANS = "'IBM Plex Sans',-apple-system,BlinkMacSystemFont,system-ui,sans-serif";
+const MONO = "'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace";
+
+let uid = 100;
+const mk = (text, o) => Object.assign({ id: ++uid, text: text, done: false, cap: true, t: '2m', mono: false }, o || {});
+
+const PRESETS = {
+  empty: () => [],
+  error: () => [],
+  short: () => [
+    mk('Ship the release notes before the freeze', { t: '2m' }),
+    mk('Call the landlord about the radiator', { cap: false, t: '9m' }),
+    mk('linear.app/aluminum/issue/ALM-412#comment-9f2c', { mono: true, t: '14m' })
+  ],
+  long: () => [
+    mk('Reply to Mira re: pricing tiers', { cap: false, t: '1m' }),
+    mk('Ask legal whether the DPA covers subprocessors in the EU', { t: '6m' }),
+    mk('const ratio = useMemo(() => w / h, [w, h])', { mono: true, t: '12m' }),
+    mk('Renew the domain before Friday', { cap: false, t: '22m' }),
+    mk('“Latency budget is 120 ms p95 — anything above that fails the SLO”', { t: '34m' }),
+    mk('Send the signed W-9', { cap: false, t: '1h', done: true }),
+    mk('Book the dentist', { cap: false, t: '1h' }),
+    mk('Draft the migration checklist for the storage cutover', { t: '2h' }),
+    mk('brew services restart postgresql@16', { mono: true, t: '3h' }),
+    mk('Move the standup to 10:15', { cap: false, t: '4h', done: true }),
+    mk('Check whether the offsite budget includes travel', { t: '5h' }),
+    mk('figma.com/file/8Kd2/aluminum-overlay?node-id=412-88', { mono: true, t: '6h' }),
+    mk('Confirm the venue deposit', { cap: false, t: '1d' }),
+    mk('Archive the Q2 experiment docs', { t: '1d', done: true })
+  ],
+  longtext: () => [
+    mk('The retro takeaway was that we keep re-litigating the same scoping decision every quarter, so the fix is a written owner per surface and a standing 20-minute review before each cycle starts.', { t: '3m' }),
+    mk('docker run --rm -v $PWD:/app -w /app node:20 npm run build -- --profile --no-cache', { mono: true, t: '18m' }),
+    mk('https://console.aws.amazon.com/cloudwatch/home?region=eu-west-1#logsV2:log-groups/log-group/aluminum-prod', { mono: true, t: '40m' })
+  ],
+  done: () => [
+    mk('Confirm the venue deposit', { cap: false, t: '4m' }),
+    mk('Ship the release notes before the freeze', { t: '20m', done: true }),
+    mk('Move the standup to 10:15', { cap: false, t: '1h', done: true }),
+    mk('Send the signed W-9', { cap: false, t: '2h', done: true }),
+    mk('linear.app/aluminum/issue/ALM-401', { mono: true, t: '3h', done: true }),
+    mk('Archive the Q2 experiment docs', { t: '5h', done: true })
+  ]
+};
+
+class Component extends DCLogic {
+  state = {
+    theme: 'light', preset: 'short', items: PRESETS.short(),
+    sel: 0, hover: null, copied: false, maximized: false,
+    vis: false, focused: true, scrolled: 0
+  };
+  inputRef = React.createRef();
+
+  componentDidMount() {
+    if (this.props.theme === 'dark') this.setState({ theme: 'dark' });
+    this._key = (e) => this.onKey(e);
+    window.addEventListener('keydown', this._key);
+    this.summon();
+  }
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this._key);
+    clearTimeout(this._t1); clearTimeout(this._t2); clearTimeout(this._t3);
+  }
+
+  summon() {
+    clearTimeout(this._t1);
+    this.setState({ vis: false });
+    this._t1 = setTimeout(() => {
+      this.setState({ vis: true });
+      const el = this.inputRef.current;
+      if (el && !el.disabled) el.focus();
+    }, 40);
+  }
+
+  minimize() {
+    clearTimeout(this._t2);
+    this.setState({ vis: false });
+    this._t2 = setTimeout(() => this.summon(), 620);
+  }
+
+  setPreset(k) {
+    this.setState({ preset: k, items: PRESETS[k](), sel: 0, hover: null, copied: false });
+    const el = this.inputRef.current;
+    if (el) { el.value = ''; if (k !== 'error') setTimeout(() => el.focus(), 0); }
+  }
+
+  add() {
+    const el = this.inputRef.current;
+    if (!el) return;
+    const text = el.value.trim();
+    if (!text) return;
+    el.value = '';
+    const it = mk(text, { cap: false, t: 'now', mono: /^(https?:\/\/|[\w-]+\.[a-z]{2,}\/)|[{}();=><]/.test(text) });
+    this.setState(s => ({ items: [it].concat(s.items), sel: 0, preset: s.preset === 'empty' || s.preset === 'error' ? 'short' : s.preset }));
+  }
+
+  toggle(id) {
+    this.setState(s => ({ items: s.items.map(x => x.id === id ? Object.assign({}, x, { done: !x.done }) : x) }));
+  }
+  remove(id) {
+    this.setState(s => {
+      const i = s.items.findIndex(x => x.id === id);
+      const items = s.items.filter(x => x.id !== id);
+      return { items: items, sel: Math.max(0, Math.min(s.sel > i ? s.sel - 1 : s.sel, items.length - 1)) };
+    });
+  }
+  copy(it) {
+    try { if (navigator.clipboard) navigator.clipboard.writeText(it.text).catch(() => {}); } catch (e) {}
+    clearTimeout(this._t3);
+    this.setState({ copied: true });
+    this._t3 = setTimeout(() => this.setState({ copied: false }), 1300);
+  }
+
+  onKey(e) {
+    if (this.state.preset === 'error') return;
+    const items = this.state.items;
+    const el = this.inputRef.current;
+    const typing = el && el.value.length > 0;
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.setState(s => ({ sel: Math.min(s.sel + 1, items.length - 1), hover: null })); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState(s => ({ sel: Math.max(s.sel - 1, 0), hover: null })); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (typing) this.add(); else if (items[this.state.sel]) this.copy(items[this.state.sel]); }
+    else if (e.key === ' ' && !typing) { e.preventDefault(); if (items[this.state.sel]) this.toggle(items[this.state.sel].id); }
+    else if ((e.key === 'Backspace' || e.key === 'Delete') && !typing) { e.preventDefault(); if (items[this.state.sel]) this.remove(items[this.state.sel].id); }
+    else if (e.key === 'Escape') { e.preventDefault(); this.minimize(); }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const t = THEMES[s.theme];
+    const accent = this.props.accent || t.accent;
+    const err = s.preset === 'error';
+    const empty = !err && s.items.length === 0;
+    const max = s.maximized;
+    const done = s.items.filter(x => x.done).length;
+
+    const rows = s.items.map((it, i) => {
+      const selected = i === s.sel;
+      const hovered = s.hover === it.id;
+      const live = selected || hovered;
+      return {
+        id: it.id, text: it.text, glyph: it.cap ? '⇧' : '↵', t: it.t,
+        bg: selected ? 'color-mix(in srgb, var(--accent) 11%, transparent)' : (hovered ? 'var(--hover)' : 'transparent'),
+        rail: selected ? '1' : '0',
+        act: live ? '1' : '0',
+        pe: live ? 'auto' : 'none',
+        meta: live ? '0' : '1',
+        txt: it.done ? 'var(--mfg)' : 'var(--fg)',
+        cbbg: it.done ? 'var(--accent)' : 'transparent',
+        cbc: it.done ? 'var(--accent)' : 'var(--cb)',
+        dash: it.done ? '0' : '14',
+        ff: it.mono ? MONO : SANS,
+        fs: it.mono ? '12.5px' : '13.5px',
+        wb: it.mono ? 'break-all' : 'normal',
+        lc: selected ? '20' : '2',
+        mh: selected ? '400px' : (it.mono ? '37px' : '39px'),
+        onEnter: () => this.setState({ hover: it.id }),
+        onLeave: () => this.setState(st => (st.hover === it.id ? { hover: null } : null)),
+        onSelect: () => this.setState({ sel: i }),
+        onToggle: (e) => { e.stopPropagation(); this.toggle(it.id); },
+        onCopy: (e) => { e.stopPropagation(); this.setState({ sel: i }); this.copy(it); },
+        onDelete: (e) => { e.stopPropagation(); this.remove(it.id); }
+      };
+    });
+
+    const presets = [
+      ['empty', 'empty'], ['short', 'short'], ['long', 'long'],
+      ['longtext', 'long text'], ['done', 'done-heavy'], ['error', 'error']
+    ].map(p => ({
+      label: p[1],
+      bg: s.preset === p[0] ? 'color-mix(in srgb, var(--accent) 16%, transparent)' : 'transparent',
+      fg: s.preset === p[0] ? 'var(--accent)' : 'var(--mfg)',
+      onClick: () => this.setPreset(p[0])
+    }));
+
+    const focusRing = s.focused && !err
+      ? 'inset 0 0 0 1px color-mix(in srgb, var(--accent) 85%, transparent), 0 0 0 3.5px color-mix(in srgb, var(--accent) 18%, transparent)'
+      : 'inset 0 0 0 0.5px var(--faint)';
+
+    return Object.assign({}, t, {
+      accent: accent,
+      rows: rows, presets: presets,
+      showList: !err && !empty, showEmpty: empty, showError: err,
+      winW: max ? '1024px' : '320px',
+      winH: max ? '640px' : '400px',
+      colW: max ? '720px' : '100%',
+      padX: max ? '22px' : '8px',
+      winScale: s.vis ? '1' : '0.97',
+      winY: s.vis ? '0px' : '6px',
+      winOp: s.vis ? '1' : '0',
+      fadeOp: s.items.length > (max ? 9 : 6) ? '1' : '0',
+      ringShadow: focusRing,
+      inputOpacity: err ? '0.45' : '1',
+      inputDisabled: err,
+      inputRef: this.inputRef,
+      statusLeft: err ? 'Capture unavailable' : (s.copied ? 'Copied to clipboard' : s.items.length + (s.items.length === 1 ? ' item' : ' items') + (done ? ' · ' + done + ' done' : '')),
+      statusRight: empty ? '↵ add' : '↑↓ move · ␣ done · ↵ copy',
+      statusColor: err ? 'var(--danger)' : (s.copied ? 'var(--accent)' : 'var(--mfg)'),
+      hintOp: err ? '0.4' : '1',
+      lightBg: s.theme === 'light' ? 'var(--glass-solid)' : 'transparent',
+      lightFg: s.theme === 'light' ? 'var(--fg)' : 'var(--mfg)',
+      darkBg: s.theme === 'dark' ? 'var(--glass-solid)' : 'transparent',
+      darkFg: s.theme === 'dark' ? 'var(--fg)' : 'var(--mfg)',
+      onLight: () => this.setState({ theme: 'light' }),
+      onDark: () => this.setState({ theme: 'dark' }),
+      onReplay: () => this.summon(),
+      onMinimize: () => this.minimize(),
+      onMaximize: () => this.setState(st => ({ maximized: !st.maximized })),
+      onFocus: () => this.setState({ focused: true }),
+      onBlur: () => this.setState({ focused: false }),
+      onScroll: () => {}
+    });
+  }
+}
+</script>
+</body>
+</html>

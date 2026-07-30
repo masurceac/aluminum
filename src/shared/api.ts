@@ -18,6 +18,8 @@ export interface AluminumApi {
   /** copy text to system clipboard and hide the overlay */
   copyOut(text: string): Promise<void>;
   hide(): Promise<void>;
+  /** titlebar maximize button — expands the overlay in place and back */
+  toggleMaximize(): Promise<void>;
   /** returns an unsubscribe function */
   onItemsChanged(cb: (items: Item[]) => void): () => void;
 }

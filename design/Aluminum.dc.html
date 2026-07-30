@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:#dcdde1;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+a{color:#2563eb;text-decoration:none;}
+a:hover{color:#1d4ed8;text-decoration:underline;}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#dcdde1;padding:44px;display:flex;flex-direction:column;gap:26px;">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px;max-width:2272px;">
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <div style="font-size:19px;font-weight:600;letter-spacing:-0.01em;color:#17171b;">Aluminum — quick-capture overlay</div>
+      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;font-weight:500;letter-spacing:0.11em;text-transform:uppercase;color:#7d7e85;">Frameless always-on-top popup · 320×400 default, maximized 1024×640 · light &amp; dark</div>
+    </div>
+    <div style="display:flex;gap:22px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8a8b91;">
+      <div>System fonts</div>
+      <div>No remote assets</div>
+      <div>CSS-variable theming</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:40px;align-items:flex-start;">
+
+    <div data-col="light" style="--bg:#ffffff;--chrome:#fbfbfc;--fg:#09090b;--mfg:#71717a;--border:#e6e6e9;--cb:#d2d2d7;--hover:#f4f4f5;--sel-bg:color-mix(in srgb, var(--accent) 9%, transparent);--sel-ring:color-mix(in srgb, var(--accent) 30%, transparent);--danger:#dc2626;--shadow:0 14px 34px -10px rgba(9,9,11,0.20), 0 2px 6px -2px rgba(9,9,11,0.08);--panel:#f4f4f5;--label:#8e8e95;--accent:#2563eb;--meta-display:flex;--footer-display:flex;width:1096px;background:var(--panel);border-radius:20px;padding:36px;">
+      <div style="--accent:{{accent}};--meta-display:{{metaDisplay}};--footer-display:{{footerDisplay}};display:flex;flex-direction:column;gap:34px;">
+
+        <div style="display:flex;align-items:baseline;gap:12px;padding-bottom:2px;border-bottom:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;letter-spacing:0.02em;color:var(--fg);">Light</div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--label);">Default appearance</div>
+        </div>
+
+        <div style="display:flex;gap:32px;align-items:flex-start;">
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Empty · 320×400</div>
+            <div data-screen-label="Light · Empty" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:0 30px;">
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <div style="display:flex;align-items:center;gap:4px;height:21px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--chrome);font-size:10px;font-weight:600;color:var(--mfg);">⇧ Shift</div>
+                  <div style="display:flex;align-items:center;gap:4px;height:21px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--chrome);font-size:10px;font-weight:600;color:var(--mfg);">⇧ Shift</div>
+                </div>
+                <div style="font-size:11.5px;line-height:1.55;color:var(--mfg);text-align:center;text-wrap:pretty;">Double-tap Shift in any app to capture selected text</div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>0 items</div>
+                <div>↵ add</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Short list · typing</div>
+            <div data-screen-label="Light · Short list" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:1px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--fg);">book flights for the offsite</div>
+                <div style="width:1.5px;height:16px;background:var(--accent);margin-left:1px;"></div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Ship the release notes before the freeze</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Notion</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Call the landlord about the radiator</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">linear.app/aluminum/issue/ALM-412#comment-9f2c</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Safari</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>3 items</div>
+                <div>↑↓ move · ↵ add</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Row 1 hovered: muted fill, ✕ revealed. Typed items carry no source label.</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Long list · scrolled</div>
+            <div data-screen-label="Light · Long list" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;box-shadow:0 1px 0 0 rgba(9,9,11,0.04);">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Reply to Mira re: pricing tiers</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                    <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;">Ask legal whether the DPA covers subprocessors in the EU</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Mail</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">const ratio = useMemo(() =&gt; w / h, [w, h])</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · VS Code</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Renew the domain before Friday</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">“Latency budget is 120 ms p95 — anything above that fails the SLO”</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Slack</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Send the signed W-9</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Book the dentist</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Draft the migration checklist for the storage cutover</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(to top, var(--bg), transparent);pointer-events:none;"></div>
+                <div style="position:absolute;right:3px;top:34px;height:104px;width:3px;border-radius:2px;background:var(--cb);"></div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>14 items · 3 done</div>
+                <div>↑↓ move · ⌫ delete</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Overflow fades into the footer; the thumb appears only while scrolling.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:32px;align-items:flex-start;">
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Long text · truncation</div>
+            <div data-screen-label="Light · Long text" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;text-overflow:ellipsis;">The retro takeaway was that we keep re-litigating the same scoping decision every quarter, so the fix is a written owner per surface and a standing 20-minute review…</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Notion</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                    <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.4;word-break:break-all;">docker run --rm -v $PWD:/app -w /app node:20 npm run build -- --profile</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Terminal</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">https://console.aws.amazon.com/cloudwatch/home?region=eu-west-1#logsV2:log-groups/log-group/aluminum-prod</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Chrome</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>3 items</div>
+                <div>↵ copy · ⌫ delete</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Two-line clamp with a trailing ellipsis; the keyboard-selected row expands to full text. Code and URLs switch to mono and break on any character.</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Done items · selected + done</div>
+            <div data-screen-label="Light · Done items" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;">Confirm the venue deposit</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Ship the release notes before the freeze</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);opacity:0.75;">Captured · Notion</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                    <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);">Move the standup to 10:15</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);">Send the signed W-9</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;color:var(--mfg);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">linear.app/aluminum/issue/ALM-401</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);opacity:0.75;">Captured · Safari</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>5 items · 4 done</div>
+                <div>⇧⌘K clear done</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Done rows drop to muted foreground — no strikethrough, so the text stays legible. Selection still reads on top of them.</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Error · input disabled</div>
+            <div data-screen-label="Light · Error" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--danger);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;background:var(--hover);cursor:not-allowed;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;opacity:0.45;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 34px;">
+                <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--danger);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1;">!</div>
+                <div style="font-size:12.5px;line-height:1.5;font-weight:600;text-align:center;text-wrap:pretty;">Preload failed — restart Aluminum</div>
+                <div style="font-size:11px;line-height:1.5;color:var(--mfg);text-align:center;">Quit from the tray icon and reopen.</div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div style="color:var(--danger);">Capture unavailable</div>
+                <div style="opacity:0.45;">↵ add</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Row states</div>
+          <div style="display:flex;gap:20px;align-items:flex-start;">
+            <div data-screen-label="Light · Row states" style="width:320px;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:5px;display:flex;flex-direction:column;gap:1px;color:var(--fg);">
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;">
+                <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;"></div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--hover);">
+                <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;"></div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;"></div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;">
+                <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;color:var(--mfg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;color:var(--mfg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;">✕</div>
+              </div>
+            </div>
+            <div style="padding-top:5px;display:flex;flex-direction:column;gap:1px;width:300px;">
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Default</div><div style="font-size:10.5px;color:var(--label);">Transparent row · ✕ hidden</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Hover</div><div style="font-size:10.5px;color:var(--label);">Neutral fill · ✕ revealed</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Keyboard-selected</div><div style="font-size:10.5px;color:var(--label);">Accent tint + 1px ring + 2px rail</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Done</div><div style="font-size:10.5px;color:var(--label);">Filled box · muted text, no strike</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Selected + done</div><div style="font-size:10.5px;color:var(--label);">Both treatments stack cleanly</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Maximized · 1024×640</div>
+          <div data-screen-label="Light · Maximized" style="position:relative;width:1024px;height:640px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+            <div style="display:flex;align-items:center;gap:3px;height:36px;padding:0 6px 0 14px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;">
+                <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                <div style="width:9px;height:1px;background:var(--mfg);"></div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                <div style="position:relative;width:10px;height:10px;">
+                  <div style="position:absolute;left:2px;top:0;width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                  <div style="position:absolute;left:0;top:2px;width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;background:var(--chrome);"></div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;justify-content:center;overflow:hidden;">
+              <div style="width:720px;display:flex;flex-direction:column;height:100%;">
+                <div style="display:flex;align-items:center;gap:1px;height:58px;border-bottom:1px solid var(--border);flex:none;">
+                  <div style="font-size:15px;color:var(--mfg);">Type and press Enter…</div>
+                </div>
+                <div style="flex:1;position:relative;overflow:hidden;">
+                  <div style="position:absolute;inset:0;padding:8px 0;display:flex;flex-direction:column;gap:1px;">
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;">Reply to Mira re: pricing tiers</div></div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                      <div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;text-wrap:pretty;">The retro takeaway was that we keep re-litigating the same scoping decision every quarter, so the fix is a written owner per surface and a standing 20-minute review before each cycle starts.</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Notion</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.45;word-break:break-all;">docker run --rm -v $PWD:/app -w /app node:20 npm run build -- --profile</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Terminal</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:38px;overflow:hidden;word-break:break-all;">https://console.aws.amazon.com/cloudwatch/home?region=eu-west-1#logsV2:log-groups/log-group/aluminum-prod</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Chrome</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;">“Latency budget is 120 ms p95 — anything above that fails the SLO”</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Slack</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9.5px;line-height:1;">✓</div>
+                      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;color:var(--mfg);">Send the signed W-9</div></div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9.5px;line-height:1;">✓</div>
+                      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;color:var(--mfg);">Move the standup to 10:15</div></div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:28px;padding:0 14px;border-top:1px solid var(--border);font-size:10.5px;color:var(--mfg);flex:none;">
+              <div>14 items · 3 done</div>
+              <div style="display:flex;gap:14px;"><div>↑↓ move</div><div>↵ copy</div><div>⌫ delete</div><div>Esc hide</div></div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:640px;text-wrap:pretty;">Maximized keeps the same chrome and row rhythm; the list is capped to a 720px measure so long captures stay readable, and rows show up to two lines at a larger size.</div>
+        </div>
+
+      </div>
+    </div>
+    <div data-col="dark" style="--bg:#0f0f12;--chrome:#151519;--fg:#fafafa;--mfg:#8a8a93;--border:#27272c;--cb:#3f3f46;--hover:#1b1b20;--sel-bg:color-mix(in srgb, var(--accent) 20%, transparent);--sel-ring:color-mix(in srgb, var(--accent) 45%, transparent);--danger:#f87171;--shadow:0 20px 46px -14px rgba(0,0,0,0.78), 0 0 0 1px rgba(255,255,255,0.04);--panel:#09090b;--label:#6c6c74;--accent:#3b82f6;--meta-display:flex;--footer-display:flex;width:1096px;background:var(--panel);border-radius:20px;padding:36px;">
+      <div style="--accent:{{accent}};--meta-display:{{metaDisplay}};--footer-display:{{footerDisplay}};display:flex;flex-direction:column;gap:34px;">
+
+        <div style="display:flex;align-items:baseline;gap:12px;padding-bottom:2px;border-bottom:1px solid var(--border);">
+          <div style="font-size:13px;font-weight:600;letter-spacing:0.02em;color:var(--fg);">Dark</div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--label);">Dark appearance</div>
+        </div>
+
+        <div style="display:flex;gap:32px;align-items:flex-start;">
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Empty · 320×400</div>
+            <div data-screen-label="Dark · Empty" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:0 30px;">
+                <div style="display:flex;align-items:center;gap:5px;">
+                  <div style="display:flex;align-items:center;gap:4px;height:21px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--chrome);font-size:10px;font-weight:600;color:var(--mfg);">⇧ Shift</div>
+                  <div style="display:flex;align-items:center;gap:4px;height:21px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--chrome);font-size:10px;font-weight:600;color:var(--mfg);">⇧ Shift</div>
+                </div>
+                <div style="font-size:11.5px;line-height:1.55;color:var(--mfg);text-align:center;text-wrap:pretty;">Double-tap Shift in any app to capture selected text</div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>0 items</div>
+                <div>↵ add</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Short list · typing</div>
+            <div data-screen-label="Dark · Short list" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:1px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--fg);">book flights for the offsite</div>
+                <div style="width:1.5px;height:16px;background:var(--accent);margin-left:1px;"></div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Ship the release notes before the freeze</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Notion</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Call the landlord about the radiator</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">linear.app/aluminum/issue/ALM-412#comment-9f2c</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Safari</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>3 items</div>
+                <div>↑↓ move · ↵ add</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Row 1 hovered: muted fill, ✕ revealed. Typed items carry no source label.</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Long list · scrolled</div>
+            <div data-screen-label="Dark · Long list" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;box-shadow:0 1px 0 0 rgba(0,0,0,0.4);">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Reply to Mira re: pricing tiers</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                    <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;">Ask legal whether the DPA covers subprocessors in the EU</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Mail</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">const ratio = useMemo(() =&gt; w / h, [w, h])</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · VS Code</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Renew the domain before Friday</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">“Latency budget is 120 ms p95 — anything above that fails the SLO”</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Slack</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Send the signed W-9</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Book the dentist</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Draft the migration checklist for the storage cutover</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+                <div style="position:absolute;left:0;right:0;bottom:0;height:30px;background:linear-gradient(to top, var(--bg), transparent);pointer-events:none;"></div>
+                <div style="position:absolute;right:3px;top:34px;height:104px;width:3px;border-radius:2px;background:var(--cb);"></div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>14 items · 3 done</div>
+                <div>↑↓ move · ⌫ delete</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Overflow fades into the footer; the thumb appears only while scrolling.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:32px;align-items:flex-start;">
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Long text · truncation</div>
+            <div data-screen-label="Dark · Long text" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;text-overflow:ellipsis;">The retro takeaway was that we keep re-litigating the same scoping decision every quarter, so the fix is a written owner per surface and a standing 20-minute review…</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Notion</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                    <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.4;word-break:break-all;">docker run --rm -v $PWD:/app -w /app node:20 npm run build -- --profile</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Terminal</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">https://console.aws.amazon.com/cloudwatch/home?region=eu-west-1#logsV2:log-groups/log-group/aluminum-prod</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Chrome</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>3 items</div>
+                <div>↵ copy · ⌫ delete</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Two-line clamp with a trailing ellipsis; the keyboard-selected row expands to full text. Code and URLs switch to mono and break on any character.</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Done items · selected + done</div>
+            <div data-screen-label="Dark · Done items" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;position:relative;overflow:hidden;">
+                <div style="position:absolute;inset:0;padding:5px;display:flex;flex-direction:column;gap:1px;">
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;">Confirm the venue deposit</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:34px;overflow:hidden;">Ship the release notes before the freeze</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);opacity:0.75;">Captured · Notion</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                    <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);">Move the standup to 10:15</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;"><div style="font-size:12.5px;line-height:1.35;letter-spacing:-0.004em;color:var(--mfg);">Send the signed W-9</div></div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                  <div style="position:relative;display:flex;gap:9px;padding:7px 7px 7px 9px;border-radius:7px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                    <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.35;color:var(--mfg);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:32px;overflow:hidden;word-break:break-all;">linear.app/aluminum/issue/ALM-401</div>
+                      <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:3px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);opacity:0.75;">Captured · Safari</div>
+                    </div>
+                    <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div>5 items · 4 done</div>
+                <div>⇧⌘K clear done</div>
+              </div>
+            </div>
+            <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:320px;text-wrap:pretty;">Done rows drop to muted foreground — no strikethrough, so the text stays legible. Selection still reads on top of them.</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;width:320px;">
+            <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Error · input disabled</div>
+            <div data-screen-label="Dark · Error" style="position:relative;width:320px;height:400px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+              <div style="display:flex;align-items:center;gap:3px;height:32px;padding:0 5px 0 11px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+                <div style="flex:1;display:flex;align-items:center;gap:7px;">
+                  <div style="width:7px;height:7px;border-radius:2px;background:var(--danger);"></div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:1px;background:var(--mfg);"></div>
+                </div>
+                <div style="width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                  <div style="width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;height:38px;padding:0 12px;border-bottom:1px solid var(--border);flex:none;background:var(--hover);cursor:not-allowed;">
+                <div style="font-size:13px;color:var(--mfg);flex:1;opacity:0.45;">Type and press Enter…</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 34px;">
+                <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--danger);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1;">!</div>
+                <div style="font-size:12.5px;line-height:1.5;font-weight:600;text-align:center;text-wrap:pretty;">Preload failed — restart Aluminum</div>
+                <div style="font-size:11px;line-height:1.5;color:var(--mfg);text-align:center;">Quit from the tray icon and reopen.</div>
+              </div>
+              <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:24px;padding:0 10px;border-top:1px solid var(--border);font-size:10px;color:var(--mfg);flex:none;">
+                <div style="color:var(--danger);">Capture unavailable</div>
+                <div style="opacity:0.45;">↵ add</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Row states</div>
+          <div style="display:flex;gap:20px;align-items:flex-start;">
+            <div data-screen-label="Dark · Row states" style="width:320px;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:5px;display:flex;flex-direction:column;gap:1px;color:var(--fg);">
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;">
+                <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;"></div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--hover);">
+                <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;"></div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                <div style="width:15px;height:15px;border-radius:4.5px;border:1.5px solid var(--cb);flex:none;"></div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;">
+                <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;color:var(--mfg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+              </div>
+              <div style="position:relative;display:flex;align-items:center;gap:9px;height:38px;padding:0 7px 0 9px;border-radius:7px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                <div style="position:absolute;left:0;top:6px;bottom:6px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                <div style="width:15px;height:15px;border-radius:4.5px;background:var(--fg);color:var(--bg);flex:none;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;">✓</div>
+                <div style="flex:1;min-width:0;font-size:12.5px;letter-spacing:-0.004em;color:var(--mfg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Renew the domain before Friday</div>
+                <div style="width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mfg);flex:none;">✕</div>
+              </div>
+            </div>
+            <div style="padding-top:5px;display:flex;flex-direction:column;gap:1px;width:300px;">
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Default</div><div style="font-size:10.5px;color:var(--label);">Transparent row · ✕ hidden</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Hover</div><div style="font-size:10.5px;color:var(--label);">Neutral fill · ✕ revealed</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Keyboard-selected</div><div style="font-size:10.5px;color:var(--label);">Accent tint + 1px ring + 2px rail</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Done</div><div style="font-size:10.5px;color:var(--label);">Filled box · muted text, no strike</div></div>
+              <div style="height:38px;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:11.5px;font-weight:600;color:var(--fg);">Selected + done</div><div style="font-size:10.5px;color:var(--label);">Both treatments stack cleanly</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--label);">Maximized · 1024×640</div>
+          <div data-screen-label="Dark · Maximized" style="position:relative;width:1024px;height:640px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;color:var(--fg);">
+            <div style="display:flex;align-items:center;gap:3px;height:36px;padding:0 6px 0 14px;border-bottom:1px solid var(--border);background:var(--chrome);flex:none;">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;">
+                <div style="width:7px;height:7px;border-radius:2px;background:var(--accent);"></div>
+                <div style="font-size:11px;font-weight:600;letter-spacing:0.01em;color:var(--mfg);">Aluminum</div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                <div style="width:9px;height:1px;background:var(--mfg);"></div>
+              </div>
+              <div style="width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;" style-hover="background:var(--hover);">
+                <div style="position:relative;width:10px;height:10px;">
+                  <div style="position:absolute;left:2px;top:0;width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;"></div>
+                  <div style="position:absolute;left:0;top:2px;width:8px;height:8px;border:1px solid var(--mfg);border-radius:2px;background:var(--chrome);"></div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;display:flex;justify-content:center;overflow:hidden;">
+              <div style="width:720px;display:flex;flex-direction:column;height:100%;">
+                <div style="display:flex;align-items:center;gap:1px;height:58px;border-bottom:1px solid var(--border);flex:none;">
+                  <div style="font-size:15px;color:var(--mfg);">Type and press Enter…</div>
+                </div>
+                <div style="flex:1;position:relative;overflow:hidden;">
+                  <div style="position:absolute;inset:0;padding:8px 0;display:flex;flex-direction:column;gap:1px;">
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;">Reply to Mira re: pricing tiers</div></div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;background:var(--sel-bg);box-shadow:inset 0 0 0 1px var(--sel-ring);">
+                      <div style="position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:0 2px 2px 0;background:var(--accent);"></div>
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;text-wrap:pretty;">The retro takeaway was that we keep re-litigating the same scoping decision every quarter, so the fix is a written owner per surface and a standing 20-minute review before each cycle starts.</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Notion</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.45;word-break:break-all;">docker run --rm -v $PWD:/app -w /app node:20 npm run build -- --profile</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Terminal</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-height:38px;overflow:hidden;word-break:break-all;">https://console.aws.amazon.com/cloudwatch/home?region=eu-west-1#logsV2:log-groups/log-group/aluminum-prod</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Chrome</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;" style-hover="background:var(--border);color:var(--danger);">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;border:1.5px solid var(--cb);flex:none;margin-top:1px;"></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;">“Latency budget is 120 ms p95 — anything above that fails the SLO”</div>
+                        <div style="display:var(--meta-display);align-items:center;gap:5px;margin-top:5px;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--mfg);">Captured · Slack</div>
+                      </div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9.5px;line-height:1;">✓</div>
+                      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;color:var(--mfg);">Send the signed W-9</div></div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                    <div style="position:relative;display:flex;gap:11px;padding:10px 10px 10px 12px;border-radius:8px;overflow:hidden;flex:none;" style-hover="background:var(--hover);">
+                      <div style="width:16px;height:16px;border-radius:5px;background:var(--fg);color:var(--bg);flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9.5px;line-height:1;">✓</div>
+                      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;line-height:1.45;letter-spacing:-0.004em;color:var(--mfg);">Move the standup to 10:15</div></div>
+                      <div style="width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--mfg);flex:none;opacity:0;">✕</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:var(--footer-display);align-items:center;justify-content:space-between;height:28px;padding:0 14px;border-top:1px solid var(--border);font-size:10.5px;color:var(--mfg);flex:none;">
+              <div>14 items · 3 done</div>
+              <div style="display:flex;gap:14px;"><div>↑↓ move</div><div>↵ copy</div><div>⌫ delete</div><div>Esc hide</div></div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;line-height:1.45;color:var(--label);max-width:640px;text-wrap:pretty;">Maximized keeps the same chrome and row rhythm; the list is capped to a 720px measure so long captures stay readable, and rows show up to two lines at a larger size.</div>
+        </div>
+
+      </div>
+    </div>
+    
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#2563eb&quot;,&quot;#7c3aed&quot;,&quot;#0d9488&quot;,&quot;#e11d48&quot;],&quot;section&quot;:&quot;Theme&quot;},&quot;showSourceLabels&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rows&quot;},&quot;showKeyHints&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Rows&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    return {
+      accent: p.accent || null,
+      metaDisplay: p.showSourceLabels === false ? 'none' : 'flex',
+      footerDisplay: p.showKeyHints === false ? 'none' : 'flex'
+    };
+  }
+}
+</script>
+</body>
+</html>

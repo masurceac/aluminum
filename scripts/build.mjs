@@ -37,4 +37,17 @@ await build({
 
 cpSync('src/renderer/index.html', 'dist/index.html');
 cpSync('src/renderer/style.css', 'dist/style.css');
+
+// Bundled fonts — the overlay's CSP has no network access, so the typefaces
+// ship as local woff2 files referenced by @font-face in style.css
+mkdirSync('dist/fonts', { recursive: true });
+for (const f of [
+  '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2',
+  '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2',
+  '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2',
+  '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2',
+  '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2',
+]) {
+  cpSync(`node_modules/${f}`, `dist/fonts/${f.split('/').pop()}`);
+}
 console.log('build ok');

@@ -68,11 +68,22 @@ function createWindow(): void {
   win = new BrowserWindow({
     width: WIN_W,
     height: WIN_H,
+    minWidth: 320,
+    minHeight: 400,
     show: false,
     frame: false,
-    resizable: false,
+    resizable: true, // titlebar is a drag region; edges resize
     skipTaskbar: true,
     alwaysOnTop: true,
+    // frosted-glass panel: the renderer paints a translucent surface over the
+    // OS material; where the material is unavailable (e.g. Windows 10) the
+    // backgroundColor below shows through instead and the UI reads as solid
+    ...(process.platform === 'win32'
+      ? { backgroundMaterial: 'acrylic' as const, backgroundColor: '#00000000' }
+      : {}),
+    ...(process.platform === 'darwin'
+      ? { vibrancy: 'under-window' as const, visualEffectState: 'active' as const }
+      : {}),
     webPreferences: {
       preload: join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -111,13 +122,18 @@ function createWindow(): void {
 function showOverlay(): void {
   if (!win) return;
   // position near the cursor, clamped to the work area (work-area origin wins
-  // when the area is smaller than the window, so the top-left stays reachable)
-  const cursor = screen.getCursorScreenPoint();
-  const display = screen.getDisplayNearestPoint(cursor);
-  const wa = display.workArea;
-  const x = Math.max(wa.x, Math.min(cursor.x - WIN_W / 2, wa.x + wa.width - WIN_W));
-  const y = Math.max(wa.y, Math.min(cursor.y + 16, wa.y + wa.height - WIN_H));
-  win.setPosition(Math.round(x), Math.round(y));
+  // when the area is smaller than the window, so the top-left stays reachable).
+  // The window is user-resizable, so clamp with its CURRENT size, and leave a
+  // maximized window where it is.
+  if (!win.isMaximized()) {
+    const { width: w, height: h } = win.getBounds();
+    const cursor = screen.getCursorScreenPoint();
+    const display = screen.getDisplayNearestPoint(cursor);
+    const wa = display.workArea;
+    const x = Math.max(wa.x, Math.min(cursor.x - w / 2, wa.x + wa.width - w));
+    const y = Math.max(wa.y, Math.min(cursor.y + 16, wa.y + wa.height - h));
+    win.setPosition(Math.round(x), Math.round(y));
+  }
   shownAt = Date.now();
   win.show();
   win.focus();
@@ -183,6 +199,12 @@ function setupIpc(): void {
   ipcMain.handle('overlay:hide', (e) => {
     if (!isTrustedSender(e)) return;
     win?.hide();
+  });
+  ipcMain.handle('overlay:toggleMaximize', (e) => {
+    if (!isTrustedSender(e)) return;
+    if (!win) return;
+    if (win.isMaximized()) win.unmaximize();
+    else win.maximize();
   });
 }
 

@@ -1587,6 +1587,13 @@ if (existsSync(helperPath)) {
 
 (The global `uncaughtException`/`unhandledRejection` handlers originally planned here were pulled forward into Task 4's `main.ts` — do not add them a second time.)
 
+- [ ] **Step 1a: Renderer polish** (deferred from Task 5 review)
+
+- Contrast: `.item.selected` needs a ≥3:1 state indicator (add a left accent border), `.done` opacity and `.del` color fall below 4.5:1, and `#new-item { outline: none }` needs a `:focus-visible` replacement ring.
+- Accessibility: `aria-label="Delete item"` on `.del`, `aria-selected` on rows, `lang` on `<html>`.
+- `.text` clip → `-webkit-line-clamp: 4`; `user-select: none` on `.item .text` (dblclick both selects a word and copies); consider `:root` CSS custom properties for the palette.
+- Guard `window.aluminum` being undefined (preload failure) with a visible "preload failed" list message.
+
 - [ ] **Step 1b: IPC sender validation + stored-item shape validation** (deferred from Task 4 review)
 
 In every `ipcMain.handle` callback, reject events from unexpected frames:

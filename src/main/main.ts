@@ -8,8 +8,11 @@ import {
   clipboard,
   dialog,
   screen,
+  systemPreferences,
 } from 'electron';
 import { join } from 'node:path';
+import { uIOhook, UiohookKey } from 'uiohook-napi';
+import { DoubleTapDetector } from './double-tap';
 import { ItemStore } from './store';
 
 // a stray exception must not kill the resident tray process
@@ -152,6 +155,34 @@ function setupTray(): void {
   });
 }
 
+function setupGlobalHook(): void {
+  if (process.platform === 'darwin') {
+    // prompts the user via System Settings on first run; the hook is silent without it
+    const trusted = systemPreferences.isTrustedAccessibilityClient(true);
+    if (!trusted) {
+      console.warn(
+        'Aluminum needs Accessibility permission (System Settings → Privacy & Security → Accessibility). Grant it, then restart.',
+      );
+    }
+  }
+  const detector = new DoubleTapDetector({
+    codes: [UiohookKey.Shift, UiohookKey.ShiftRight],
+    windowMs: 300,
+  });
+  uIOhook.on('keydown', (e) => {
+    if (detector.keydown(e.keycode)) {
+      onDoubleShift();
+    }
+  });
+  uIOhook.on('keyup', (e) => detector.keyup(e.keycode));
+  uIOhook.start();
+}
+
+function onDoubleShift(): void {
+  // Task 9 replaces this with capture-then-show
+  toggleOverlay();
+}
+
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
@@ -168,6 +199,11 @@ if (!gotLock) {
     setupIpc();
     createWindow();
     setupTray();
+    setupGlobalHook();
+  });
+
+  app.on('will-quit', () => {
+    uIOhook.stop();
   });
 
   // tray app: don't quit when the window is hidden/closed

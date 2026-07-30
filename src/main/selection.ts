@@ -6,6 +6,10 @@ const REQUEST_TIMEOUT_MS = 1500;
 const CLIPBOARD_SETTLE_MS = 200;
 /** cap captured text — the store rewrites the whole file on every mutation */
 const MAX_CAPTURE_CHARS = 10_000;
+/** a helper that dies repeatedly is broken, not unlucky: stop after this many
+ * consecutive restarts so we don't spawn a process forever */
+const MAX_RESPAWNS = 3;
+const RESPAWN_DELAY_MS = 500;
 
 /**
  * Client for the per-platform selection helper (SelectionHelper.exe / SelectionHelper).
@@ -15,18 +19,32 @@ export class SelectionCapturer {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private pending: ((line: string) => void)[] = [];
   private buf = '';
+  /** consecutive unexpected exits we have already restarted from */
+  private respawns = 0;
+  /** set by stop(): the exit that follows is ours, not a crash */
+  private intentionalStop = false;
 
-  constructor(private helperPath: string) {}
+  constructor(
+    private helperPath: string,
+    /** injectable for tests; production always uses child_process.spawn */
+    private spawnFn: typeof spawn = spawn,
+  ) {}
 
   start(): void {
-    this.proc = spawn(this.helperPath, [], { windowsHide: true });
+    this.intentionalStop = false;
+    this.proc = this.spawnFn(this.helperPath, [], { windowsHide: true });
     this.proc.stdout.setEncoding('utf8');
     this.proc.stdout.on('data', (chunk: string) => {
       this.buf += chunk;
       let nl: number;
       while ((nl = this.buf.indexOf('\n')) !== -1) {
-        const line = this.buf.slice(0, nl).replace(/\r$/, ''); // C# writes \r\n
+        const line = this.buf
+          .slice(0, nl)
+          .replace(/\r$/, '') // C# writes \r\n
+          .replace(/^\uFEFF/, ''); // a BOM-emitting stdout encoding would poison "OK "
         this.buf = this.buf.slice(nl + 1);
+        // the helper answered: whatever went wrong before, it is healthy now
+        if (!line.startsWith('ERR')) this.respawns = 0;
         this.pending.shift()?.(line);
       }
     });
@@ -49,10 +67,18 @@ export class SelectionCapturer {
       this.buf = ''; // a partial line must not corrupt a future start()
       // flush waiters so callers don't hang
       this.pending.splice(0).forEach((r) => r('ERR helper-exited'));
+      // a crashed helper leaves capture dead for the rest of the session;
+      // bring it back, but never in a hot loop and never after stop()
+      if (this.intentionalStop || this.respawns >= MAX_RESPAWNS) return;
+      this.respawns++;
+      setTimeout(() => {
+        if (!this.intentionalStop && !this.proc) this.start();
+      }, RESPAWN_DELAY_MS);
     });
   }
 
   stop(): void {
+    this.intentionalStop = true;
     try {
       this.proc?.stdin.write('EXIT\n');
     } catch {

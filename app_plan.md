@@ -41,6 +41,8 @@ helper/SelectionHelper.swift   # macOS: AXUIElement capture + Cmd+C synth, same 
 helper/build-helper.sh         # compiles macOS helper with swiftc (Xcode CLT)
 tests/double-tap.test.ts
 tests/store.test.ts
+tests/selection.test.ts        # helper client against a fake child process (Task 10)
+README.md
 ```
 
 ---
@@ -1624,6 +1626,18 @@ git commit -m "feat: selection capture via UIA helper with clipboard fallback"
 > text), `copyRes === 'OK'` exact match, clipboard restore in `finally`.
 > Still open for this task's polish: bounded helper respawn policy, unit tests for
 > SelectionCapturer framing/pairing against a fake child process, defensive `﻿` strip.
+>
+> **As-built (Task 10):** all three delivered. `SelectionCapturer` now takes a second
+> constructor argument `spawnFn: typeof spawn = spawn` (injection is the only production-visible
+> concession to testability). An unexpected `exit` schedules `start()` again after
+> `RESPAWN_DELAY_MS` (500), at most `MAX_RESPAWNS` (3) consecutive times; any non-`ERR` reply
+> resets the counter, and `stop()` sets an `intentionalStop` flag that suppresses the restart.
+> Each parsed line also drops a leading `﻿`. `tests/selection.test.ts` (12 tests, fake
+> child process + mocked `electron.clipboard`) covers request/response pairing, chunk-split
+> reassembly, `\r\n` and BOM stripping, the timeout tombstone (a late reply is never
+> misdelivered to the next request), exit flushing pending waiters, `capture()` base64 decode,
+> `capture()` skipping the clipboard fallback when the helper is gone, and the respawn policy
+> (restart, 3-restart cap, budget re-arm, no restart after `stop()`).
 
 - [x] **Step 1: Guard against a missing helper exe** *(done in Task 9 — see note above)*
 

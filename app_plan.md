@@ -1625,7 +1625,7 @@ git commit -m "feat: selection capture via UIA helper with clipboard fallback"
 > Still open for this task's polish: bounded helper respawn policy, unit tests for
 > SelectionCapturer framing/pairing against a fake child process, defensive `﻿` strip.
 
-- [ ] **Step 1: Guard against a missing helper exe** *(done in Task 9 — see note above)*
+- [x] **Step 1: Guard against a missing helper exe** *(done in Task 9 — see note above)*
 
 In `main.ts`, wrap capturer startup so the app still works (fallback-less) when the helper wasn't built:
 
@@ -1656,7 +1656,7 @@ if (existsSync(helperPath)) {
 - `.text` clip → `-webkit-line-clamp: 4`; `user-select: none` on `.item .text` (dblclick both selects a word and copies); consider `:root` CSS custom properties for the palette.
 - Guard `window.aluminum` being undefined (preload failure) with a visible "preload failed" list message.
 
-- [ ] **Step 1b: IPC sender validation + stored-item shape validation** (deferred from Task 4 review)
+- [x] **Step 1b: IPC sender validation + stored-item shape validation** (deferred from Task 4 review)
 
 In every `ipcMain.handle` callback, reject events from unexpected frames:
 

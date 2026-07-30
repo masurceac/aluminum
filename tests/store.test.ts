@@ -147,6 +147,46 @@ describe('ItemStore', () => {
     expect(raw.items.map((i: { text: string }) => i.text)).toEqual(['y']);
   });
 
+  it('quarantines a null JSON root', () => {
+    writeFileSync(file, 'null');
+    const s = new ItemStore(file);
+    expect(s.getAll()).toEqual([]);
+    const quarantined = readdirSync(dirname(file)).filter((n) =>
+      n.startsWith('items.json.corrupt-'),
+    );
+    expect(quarantined).toHaveLength(1);
+    expect(readFileSync(join(dirname(file), quarantined[0]), 'utf8')).toBe('null');
+  });
+
+  it('quarantines a root object without an items array', () => {
+    writeFileSync(file, '{}');
+    const onError = vi.fn();
+    const s = new ItemStore(file, { onError });
+    expect(s.getAll()).toEqual([]);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0]).toBe('load');
+    const quarantined = readdirSync(dirname(file)).filter((n) =>
+      n.startsWith('items.json.corrupt-'),
+    );
+    expect(quarantined).toHaveLength(1);
+  });
+
+  it('drops malformed entries but keeps a valid root', () => {
+    const valid = {
+      id: 'abc',
+      text: 'keep me',
+      done: false,
+      source: 'manual',
+      createdAt: 1,
+    };
+    writeFileSync(file, JSON.stringify({ items: [valid, { garbage: 1 }] }));
+    const s = new ItemStore(file);
+    expect(s.getAll()).toEqual([valid]);
+    // a valid root is NOT corrupt: the file stays where it is
+    const quarantined = readdirSync(dirname(file)).filter((n) => n.includes('.corrupt-'));
+    expect(quarantined).toEqual([]);
+  });
+
   it('rejects non-string or empty text', () => {
     const s = new ItemStore(file);
     expect(() => s.add('', 'manual')).toThrow();

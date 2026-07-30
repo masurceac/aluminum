@@ -75,8 +75,25 @@ export class ItemStore {
       return;
     }
     try {
-      const parsed = JSON.parse(raw);
-      this.items = Array.isArray(parsed.items) ? parsed.items : [];
+      const parsed: unknown = JSON.parse(raw);
+      // the file is user-visible and hand-editable: trust nothing about its shape
+      const items =
+        parsed !== null &&
+        typeof parsed === 'object' &&
+        Array.isArray((parsed as { items?: unknown }).items)
+          ? (parsed as { items: unknown[] }).items.filter(
+              (i): i is Item =>
+                i !== null &&
+                typeof i === 'object' &&
+                typeof (i as Item).id === 'string' &&
+                typeof (i as Item).text === 'string' &&
+                typeof (i as Item).done === 'boolean',
+            )
+          : null;
+      // an unrecognized root is data we can't interpret, not an empty list —
+      // route it into the quarantine branch instead of silently replacing it
+      if (items === null) throw new SyntaxError('unrecognized store shape');
+      this.items = items;
     } catch (err) {
       // unparseable bytes: keep them aside instead of overwriting on the next save
       try {

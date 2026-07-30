@@ -1,0 +1,27 @@
+{
+  "name": "aluminum",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "npm run build && electron .",
+    "test": "vitest run",
+    "helper": "node -e \"require('child_process').execSync(process.platform==='win32' ? 'powershell -ExecutionPolicy Bypass -File helper/build-helper.ps1' : 'bash helper/build-helper.sh', {stdio:'inherit'})\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "electron": "^43.2.0",
+    "esbuild": "^0.28.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.5"
+  }
+}

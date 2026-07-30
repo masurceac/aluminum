@@ -155,6 +155,23 @@ describe('ItemStore', () => {
     expect(s.getAll()).toEqual([]);
   });
 
+  it('leaves an unreadable-but-present file alone (no quarantine)', () => {
+    // a directory at the file path makes readFileSync fail with EISDIR —
+    // a read failure on data that may be perfectly intact
+    mkdirSync(file);
+    const onError = vi.fn();
+    const s = new ItemStore(file, { onError });
+
+    expect(s.getAll()).toEqual([]);
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0]).toBe('load');
+    expect(existsSync(file)).toBe(true); // not renamed aside
+    const quarantined = readdirSync(dirname(file)).filter((n) =>
+      n.includes('.corrupt-'),
+    );
+    expect(quarantined).toEqual([]);
+  });
+
   it('reports save errors via onError instead of throwing', () => {
     // occupy the temp path save() writes through, so writeFileSync fails (EISDIR)
     mkdirSync(`${file}.tmp`);

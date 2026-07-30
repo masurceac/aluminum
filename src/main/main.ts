@@ -1,1 +1,153 @@
-console.log('placeholder');
+import {
+  app,
+  BrowserWindow,
+  Tray,
+  Menu,
+  nativeImage,
+  ipcMain,
+  clipboard,
+  dialog,
+  screen,
+} from 'electron';
+import { join } from 'node:path';
+import { ItemStore } from './store';
+
+// a stray exception must not kill the resident tray process
+process.on('uncaughtException', (err) => console.error('uncaughtException', err));
+process.on('unhandledRejection', (err) => console.error('unhandledRejection', err));
+
+let win: BrowserWindow | null = null;
+let tray: Tray | null = null;
+let store: ItemStore;
+
+const WIN_W = 360;
+const WIN_H = 480;
+
+// 16x16 solid-color tray icon (base64 PNG) — placeholder, any icon works
+const TRAY_PNG =
+  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVR4nGNgYGD4' +
+  'z0AswK4SlwHYFTMwMDAwMTAwMFCsmYGBgQEA98cBBQ1qXO4AAAAASUVORK5CYII=';
+
+function createStore(): ItemStore {
+  let saveErrorShown = false;
+  return new ItemStore(join(app.getPath('userData'), 'items.json'), {
+    onError: (op, err) => {
+      console.error(`store ${op} failed`, err);
+      // surface data-loss risk once, not on every keystroke
+      if (op === 'save' && !saveErrorShown) {
+        saveErrorShown = true;
+        dialog.showErrorBox(
+          'Aluminum — could not save your list',
+          'Changes are kept in memory but could not be written to disk.\n' +
+            `${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    },
+  });
+}
+
+function createWindow(): void {
+  win = new BrowserWindow({
+    width: WIN_W,
+    height: WIN_H,
+    show: false,
+    frame: false,
+    resizable: true,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    webPreferences: {
+      preload: join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  win.setAlwaysOnTop(true, 'screen-saver');
+  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); // macOS spaces
+  win.loadFile(join(__dirname, 'index.html'));
+  win.on('blur', () => win?.hide());
+}
+
+export function showOverlay(): void {
+  if (!win) return;
+  // position near the cursor, clamped to the work area
+  const cursor = screen.getCursorScreenPoint();
+  const display = screen.getDisplayNearestPoint(cursor);
+  const wa = display.workArea;
+  const x = Math.min(Math.max(cursor.x - WIN_W / 2, wa.x), wa.x + wa.width - WIN_W);
+  const y = Math.min(Math.max(cursor.y + 16, wa.y), wa.y + wa.height - WIN_H);
+  win.setPosition(Math.round(x), Math.round(y));
+  win.show();
+  win.focus();
+}
+
+function toggleOverlay(): void {
+  if (!win) return;
+  if (win.isVisible()) win.hide();
+  else showOverlay();
+}
+
+function pushItems(): void {
+  win?.webContents.send('items:changed', store.getAll());
+}
+
+function setupIpc(): void {
+  ipcMain.handle('items:get', () => store.getAll());
+  ipcMain.handle('items:add', (_e, text: unknown) => {
+    // IPC payloads are untyped; a malformed message must not become a renderer rejection
+    if (typeof text !== 'string' || !text.trim()) return null;
+    const item = store.add(text, 'manual');
+    pushItems();
+    return item;
+  });
+  ipcMain.handle('items:setDone', (_e, id: unknown, done: unknown) => {
+    if (typeof id !== 'string' || typeof done !== 'boolean') return;
+    store.setDone(id, done);
+    pushItems();
+  });
+  ipcMain.handle('items:remove', (_e, id: unknown) => {
+    if (typeof id !== 'string') return;
+    store.remove(id);
+    pushItems();
+  });
+  ipcMain.handle('clipboard:copyOut', (_e, text: unknown) => {
+    if (typeof text !== 'string') return;
+    clipboard.writeText(text);
+    win?.hide();
+  });
+  ipcMain.handle('overlay:hide', () => win?.hide());
+}
+
+function setupTray(): void {
+  const icon = nativeImage.createFromBuffer(Buffer.from(TRAY_PNG, 'base64'));
+  tray = new Tray(icon);
+  tray.setToolTip('Aluminum');
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: 'Show / Hide', click: toggleOverlay },
+      { type: 'separator' },
+      { label: 'Quit', click: () => app.quit() },
+    ]),
+  );
+  tray.on('click', toggleOverlay);
+}
+
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => showOverlay());
+
+  app.whenReady().then(() => {
+    app.setAppUserModelId('com.aluminum.app'); // Windows tray/notification identity
+    if (process.platform === 'darwin') app.dock?.hide(); // menu-bar app, no Dock icon
+    store = createStore();
+    setupIpc();
+    createWindow();
+    setupTray();
+  });
+
+  // tray app: don't quit when the window is hidden/closed
+  app.on('window-all-closed', () => {
+    /* keep running */
+  });
+}

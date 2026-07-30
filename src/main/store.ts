@@ -3,7 +3,7 @@ import {
   writeFileSync,
   mkdirSync,
   renameSync,
-  existsSync,
+  rmSync,
 } from 'node:fs';
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -70,29 +70,43 @@ export class ItemStore {
   }
 
   private load(): void {
+    let raw: string;
     try {
-      const raw = JSON.parse(readFileSync(this.filePath, 'utf8'));
-      this.items = Array.isArray(raw.items) ? raw.items : [];
+      raw = readFileSync(this.filePath, 'utf8');
     } catch (err) {
-      // keep unreadable data around instead of overwriting it on the next save
-      if (existsSync(this.filePath)) {
-        try {
-          renameSync(this.filePath, `${this.filePath}.corrupt-${Date.now()}`);
-        } catch {
-          /* best effort */
-        }
+      // unreadable ≠ corrupt: leave the file alone, it may read fine next launch
+      if ((err as NodeJS.ErrnoException)?.code !== 'ENOENT') {
         this.opts.onError?.('load', err);
       }
+      this.items = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      this.items = Array.isArray(parsed.items) ? parsed.items : [];
+    } catch (err) {
+      // unparseable bytes: keep them aside instead of overwriting on the next save
+      try {
+        renameSync(this.filePath, `${this.filePath}.corrupt-${Date.now()}`);
+      } catch {
+        /* best effort */
+      }
+      this.opts.onError?.('load', err);
       this.items = [];
     }
   }
 
   private save(): void {
+    const tmp = `${this.filePath}.tmp`;
     try {
-      const tmp = `${this.filePath}.tmp`;
       writeFileSync(tmp, JSON.stringify({ items: this.items }, null, 2), 'utf8');
       renameSync(tmp, this.filePath); // atomic swap: readers see old or new, never half
     } catch (err) {
+      try {
+        rmSync(tmp, { force: true }); // don't leave a stale tmp behind
+      } catch {
+        /* best effort — tmp may be a directory or locked */
+      }
       this.opts.onError?.('save', err); // never throw into an IPC handler
     }
   }

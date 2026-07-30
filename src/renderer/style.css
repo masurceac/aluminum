@@ -1,1 +1,56 @@
-/* placeholder */
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  background: #1e1e24;
+  color: #e8e8ec;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #3a3a44;
+  overflow: hidden;
+}
+
+#new-item {
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid #3a3a44;
+  background: #26262e;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+#list {
+  list-style: none;
+  padding: 4px 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: default;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.item.selected { background: #33334a; }
+.item.done .text { text-decoration: line-through; opacity: 0.45; }
+.item .text { flex: 1; max-height: 70px; overflow: hidden; }
+.item input[type="checkbox"] { margin-top: 2px; }
+.item .del {
+  background: none;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  visibility: hidden;
+  font: inherit;
+}
+.item:hover .del, .item.selected .del { visibility: visible; }
+
+.empty { padding: 24px 12px; text-align: center; opacity: 0.4; }

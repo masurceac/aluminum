@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Item } from './store';
+import type { AluminumApi, Item } from '../shared/api';
 
-const api = {
+const api: AluminumApi = {
   getItems: (): Promise<Item[]> => ipcRenderer.invoke('items:get'),
   /** state flows back via onItemsChanged — mutations return nothing */
   addItem: (text: string): Promise<void> => ipcRenderer.invoke('items:add', text),
@@ -18,7 +18,5 @@ const api = {
     return () => ipcRenderer.removeListener('items:changed', handler);
   },
 };
-
-export type AluminumApi = typeof api;
 
 contextBridge.exposeInMainWorld('aluminum', api);

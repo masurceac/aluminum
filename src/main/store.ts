@@ -8,15 +8,8 @@ import {
 import { dirname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
-export type ItemSource = 'manual' | 'capture';
-
-export interface Item {
-  id: string;
-  text: string;
-  done: boolean;
-  source: ItemSource;
-  createdAt: number;
-}
+import type { Item, ItemSource } from '../shared/api';
+export type { Item, ItemSource };
 
 export interface ItemStoreOptions {
   /** called when a read/write fails; the mutation stays in memory */

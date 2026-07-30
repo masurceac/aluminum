@@ -5,7 +5,7 @@
   "description": "",
   "main": "dist/main.js",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.renderer.json",
     "build": "npm run typecheck && node scripts/build.mjs",
     "start": "npm run build && electron .",
     "test": "vitest run",

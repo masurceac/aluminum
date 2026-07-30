@@ -1,6 +1,10 @@
 export interface DoubleTapOptions {
   /** uiohook keycodes that count as the tap key (e.g. left + right shift) */
   codes: number[];
+  /** keycodes that are neutral: they neither taint a tap nor kill a pending
+   * one, so a chord like Ctrl+Shift,Shift can still fire (e.g. left + right
+   * ctrl — a held modifier auto-repeats keydowns between the taps) */
+  ignoreCodes?: number[];
   /** max ms between first tap's keyup and second tap's keydown */
   windowMs: number;
   /** clock injection for tests; defaults to Date.now */
@@ -15,6 +19,7 @@ export interface DoubleTapOptions {
  */
 export class DoubleTapDetector {
   private readonly codes: Set<number>;
+  private readonly ignoreCodes: Set<number>;
   private readonly windowMs: number;
   private readonly now: () => number;
 
@@ -29,12 +34,14 @@ export class DoubleTapDetector {
 
   constructor(opts: DoubleTapOptions) {
     this.codes = new Set(opts.codes);
+    this.ignoreCodes = new Set(opts.ignoreCodes ?? []);
     this.windowMs = opts.windowMs;
     this.now = opts.now ?? Date.now;
   }
 
   /** Feed a keydown. Returns true when the double-tap fires. */
   keydown(code: number): boolean {
+    if (this.ignoreCodes.has(code)) return false; // neutral: no taint, no state
     if (!this.codes.has(code)) {
       // some other key: taints an in-progress tap and kills any pending first tap
       if (this.downCode !== null) this.sawOtherKey = true;

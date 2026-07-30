@@ -1166,6 +1166,8 @@ function onDoubleShift(): void {
 }
 ```
 
+> **As-built (2026-07-30, Ctrl variant):** the detector also takes `ignoreCodes: [UiohookKey.Ctrl, UiohookKey.CtrlRight]` — codes that neither taint a tap nor kill a pending one (a held modifier auto-repeats keydowns between the taps, which would otherwise reset the sequence). **Ctrl+Shift,Shift opens the overlay WITHOUT capturing** (`onDoubleShift(skipCapture)` early-returns to `showOverlay()`); plain Shift,Shift captures first as before. Ctrl held-state is tracked manually from raw keycodes in the keydown/keyup listeners — **uiohook-napi's `e.ctrlKey` mask was observed always-false on Windows; do not use the event's modifier flags.** Detector behavior covered in `tests/double-tap.test.ts` (ignored-modifier cases); Ctrl+Shift+A chords still taint via the non-ignored `A` keydown.
+
 Call `setupGlobalHook()` inside `app.whenReady().then(...)` after `setupTray()`, and stop the hook on quit:
 
 ```ts
@@ -1836,6 +1838,7 @@ validation, renderer polish, helper respawn + SelectionCapturer tests, README.
 | macOS tasks authored on Windows can't be verified until run on Mac hardware | Tasks 8's build/verify steps and the macOS half of regression are explicitly marked deferred-to-Mac; code compiles from a clean checkout with `npm run helper`. |
 | Synthesized Ctrl+C lands in apps where Ctrl+C isn't copy (console windows → interrupt) | Fallback only fires when the native API found no selection; consoles rarely have one selected. Accept for v1; a foreground-window class check could gate it later. **Open item** — it does fire on every double-Shift in Claude Code (no UIA TextPattern there). |
 | **Windows denies keyboard foreground to a hotkey-shown overlay** (fixed) | `show()`/`focus()` only paint the window on top: Windows grants foreground to the process owning the last input event, which a passive hook never does. Electron then *reports* `isFocused() === true` while keystrokes still go to the previous app — the user must click the overlay to type. Fixed by the helper's `FOREGROUND <hwnd>` command (AttachThreadInput to the foreground thread, then SetForegroundWindow), called from `showOverlay()` on win32. **Never verify this with `win.isFocused()` — it lies. Verify with `GetForegroundWindow()` or a real keystroke.** |
+| **Helper's first `ShowWindow` call hid the overlay instead of showing it** (fixed) | The helper is spawned with Node's `windowsHide: true`, i.e. `STARTF_USESHOWWINDOW` + `wShowWindow = SW_HIDE`. Win32 rule: the **first** `ShowWindow` call a process makes ignores its `nCmdShow` argument and substitutes the inherited `wShowWindow` — so `FOREGROUND`'s `ShowWindow(target, SW_SHOW)` executed `SW_HIDE` on the overlay. Symptom: the first double-Shift of a session flashed the overlay and vanished (no Electron `hide` event — the hide is external), every later one worked. Fixed in `helper/SelectionHelper.cs` by using `SetWindowPos(..., SWP_SHOWWINDOW\|SWP_NOMOVE\|SWP_NOSIZE\|SWP_NOZORDER\|SWP_NOACTIVATE)`, which is exempt from the first-call rule. Diagnosed by bisecting the `FOREGROUND` sequence call-by-call; a WinEvent `EVENT_OBJECT_HIDE` hook attributes the hide to the window's own thread regardless of caller, so it can't identify the hider. |
 
 ## Explicitly out of scope (v1)
 

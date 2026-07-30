@@ -31,6 +31,9 @@ Double-tap Shift in any app: Aluminum captures the current text selection (if
 there is one) as a new item and shows the overlay near the cursor. If the
 overlay is already open **and focused**, double-tap Shift hides it instead.
 
+Hold **Ctrl** while double-tapping Shift to open the overlay **without
+capturing anything** — no selection read, no clipboard fallback.
+
 In the overlay:
 
 | Key | Action |

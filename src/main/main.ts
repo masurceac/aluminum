@@ -216,20 +216,34 @@ function setupGlobalHook(): void {
   }
   const detector = new DoubleTapDetector({
     codes: [UiohookKey.Shift, UiohookKey.ShiftRight],
+    // held Ctrl must not break the tap sequence: Ctrl+Shift,Shift is the
+    // "open without capturing" variant of the gesture
+    ignoreCodes: [UiohookKey.Ctrl, UiohookKey.CtrlRight],
     windowMs: DOUBLE_TAP_MS,
   });
+  // Ctrl is tracked from raw keycodes because the event's own ctrlKey flag is
+  // unreliable (observed always-false from uiohook-napi on Windows)
+  const ctrlHeld = new Set<number>();
+  const isCtrl = (code: number): boolean =>
+    code === UiohookKey.Ctrl || code === UiohookKey.CtrlRight;
   // the listener is the error boundary: a throw here would unwind into the
   // N-API threadsafe callback while the hook keeps reporting "armed"
   uIOhook.on('keydown', (e) => {
     try {
+      if (isCtrl(e.keycode)) ctrlHeld.add(e.keycode);
       if (detector.keydown(e.keycode)) {
-        void onDoubleShift().catch((err) => console.error('double-shift failed', err));
+        void onDoubleShift(ctrlHeld.size > 0).catch((err) =>
+          console.error('double-shift failed', err),
+        );
       }
     } catch (err) {
       console.error('double-shift handler failed', err);
     }
   });
-  uIOhook.on('keyup', (e) => detector.keyup(e.keycode));
+  uIOhook.on('keyup', (e) => {
+    ctrlHeld.delete(e.keycode);
+    detector.keyup(e.keycode);
+  });
   try {
     uIOhook.start();
   } catch (err) {
@@ -241,11 +255,17 @@ function setupGlobalHook(): void {
 
 let capturing = false;
 
-async function onDoubleShift(): Promise<void> {
+/** Ctrl+Shift,Shift (`skipCapture`) opens the overlay without touching the
+ * selection or clipboard; plain Shift,Shift captures first. */
+async function onDoubleShift(skipCapture = false): Promise<void> {
   // if the overlay itself is focused, double-shift just hides it — this must
   // work even while a capture is still in flight
   if (win?.isVisible() && win.isFocused()) {
     win.hide();
+    return;
+  }
+  if (skipCapture) {
+    showOverlay();
     return;
   }
   if (capturing) return;

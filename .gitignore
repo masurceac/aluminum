@@ -3,5 +3,7 @@ dist/
 helper/SelectionHelper.exe
 helper/SelectionHelper
 *.log
+.env
+.env*.local
 .DS_Store
 Thumbs.db

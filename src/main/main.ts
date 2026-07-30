@@ -19,9 +19,15 @@ process.on('unhandledRejection', (err) => console.error('unhandledRejection', er
 let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let store: ItemStore;
+let isQuitting = false;
+/** when the overlay last hid itself on blur — guards the tray-click race */
+let lastHiddenAt = 0;
 
 const WIN_W = 360;
 const WIN_H = 480;
+/** clicking the tray blurs (and hides) the overlay before the click handler
+ * runs; a show within this window would make tray-click unable to hide */
+const TRAY_BLUR_RACE_MS = 300;
 
 // 16x16 solid-color tray icon (base64 PNG) — placeholder, any icon works
 const TRAY_PNG =
@@ -52,7 +58,7 @@ function createWindow(): void {
     height: WIN_H,
     show: false,
     frame: false,
-    resizable: true,
+    resizable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
     webPreferences: {
@@ -65,15 +71,20 @@ function createWindow(): void {
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); // macOS spaces
   win.loadFile(join(__dirname, 'index.html'));
   win.on('blur', () => {
+    if (!win?.isVisible()) return; // already hidden explicitly — not a blur-hide
     lastHiddenAt = Date.now();
+    win.hide();
+  });
+  // a tray app's window must never be destroyed (Alt+F4 / Cmd+W send close);
+  // a destroyed window would leave every later win.* call throwing forever
+  win.on('close', (e) => {
+    if (isQuitting) return;
+    e.preventDefault();
     win?.hide();
   });
 }
 
-/** when the overlay last hid itself on blur — guards the tray-click race */
-let lastHiddenAt = 0;
-
-export function showOverlay(): void {
+function showOverlay(): void {
   if (!win) return;
   // position near the cursor, clamped to the work area (work-area origin wins
   // when the area is smaller than the window, so the top-left stays reachable)
@@ -89,15 +100,8 @@ export function showOverlay(): void {
 
 function toggleOverlay(): void {
   if (!win) return;
-  if (win.isVisible()) {
-    win.hide();
-  } else if (Date.now() - lastHiddenAt < 300) {
-    // clicking the tray icon blurs the window first, which already hid it —
-    // re-showing here would make tray-click unable to ever hide the overlay
-    return;
-  } else {
-    showOverlay();
-  }
+  if (win.isVisible()) win.hide();
+  else showOverlay();
 }
 
 function pushItems(): void {
@@ -108,10 +112,9 @@ function setupIpc(): void {
   ipcMain.handle('items:get', () => store.getAll());
   ipcMain.handle('items:add', (_e, text: unknown) => {
     // IPC payloads are untyped; a malformed message must not become a renderer rejection
-    if (typeof text !== 'string' || !text.trim()) return null;
-    const item = store.add(text, 'manual');
-    pushItems();
-    return item;
+    if (typeof text !== 'string' || !text.trim()) return;
+    store.add(text, 'manual');
+    pushItems(); // items:changed is the single source of truth for state
   });
   ipcMain.handle('items:setDone', (_e, id: unknown, done: unknown) => {
     if (typeof id !== 'string' || typeof done !== 'boolean') return;
@@ -142,7 +145,11 @@ function setupTray(): void {
       { label: 'Quit', click: () => app.quit() },
     ]),
   );
-  tray.on('click', toggleOverlay);
+  // the click that reaches us after a blur-hide was meant to hide, not re-show
+  tray.on('click', () => {
+    if (!win?.isVisible() && Date.now() - lastHiddenAt < TRAY_BLUR_RACE_MS) return;
+    toggleOverlay();
+  });
 }
 
 const gotLock = app.requestSingleInstanceLock();
@@ -150,6 +157,9 @@ if (!gotLock) {
   app.quit();
 } else {
   app.on('second-instance', () => showOverlay());
+  app.on('before-quit', () => {
+    isQuitting = true;
+  });
 
   app.whenReady().then(() => {
     app.setAppUserModelId('com.aluminum.app'); // Windows tray/notification identity

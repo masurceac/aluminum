@@ -1566,12 +1566,7 @@ if (existsSync(helperPath)) {
 
 (`SelectionCapturer.capture()` already returns null when the process isn't running, so double-shift degrades to plain overlay toggle.)
 
-Also add global error handlers near the top of `main.ts` so a stray exception can't kill the resident tray process:
-
-```ts
-process.on('uncaughtException', (err) => console.error('uncaughtException', err));
-process.on('unhandledRejection', (err) => console.error('unhandledRejection', err));
-```
+(The global `uncaughtException`/`unhandledRejection` handlers originally planned here were pulled forward into Task 4's `main.ts` — do not add them a second time.)
 
 - [ ] **Step 2: Write `README.md`**
 

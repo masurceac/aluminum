@@ -1769,7 +1769,17 @@ Ctrl+C / Cmd+C and the app reads the clipboard, then restores the previous
 clipboard contents.
 ```
 
-- [ ] **Step 3: Full manual regression pass**
+- [ ] **Step 3: Full manual regression pass** *(partially done — see note)*
+
+> **As-built:** the interactive half of this checklist was NOT run in the Task 10 pass: the
+> machine was in active use by the user, so no keyboard/mouse input was synthesized and
+> `COPYKEY` was never exercised. What was verified automatically: the app launches from
+> `electron.exe C:\aluminum` and stays alive, spawns `SelectionHelper.exe` as a child of the
+> Electron main process, writes nothing to stderr, and — on a hard `Stop-Process -Force` of the
+> main process only — leaves no `SelectionHelper.exe` and no Electron child processes behind
+> (the helper exits on stdin close even when `will-quit` never runs). The double-shift capture
+> loop, blur-hide, tray toggle, copy-out and persistence-across-restart items still need a
+> human at the keyboard; the macOS half remains deferred to Mac hardware.
 
 Run: `npm start`, then verify the checklist:
 - App launches to tray only (no window, no taskbar entry).
@@ -1779,17 +1789,15 @@ Run: `npm start`, then verify the checklist:
 - Quit from tray → process exits fully (check no stray `SelectionHelper.exe` in Task Manager / `SelectionHelper` in Activity Monitor).
 - macOS (when Mac hardware available): repeat the checklist there — menu-bar icon, no Dock icon, Cmd+C copy-out, capture from TextEdit and Safari.
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npm test`
-Expected: all PASS.
+Expected: all PASS. (45 as shipped: 13 double-tap, 20 store, 12 selection.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
-```bash
-git add README.md src/main/main.ts
-git commit -m "feat: graceful degradation without helper + README"
-```
+Shipped as five commits instead of one, grouped by concern: store shape validation, IPC sender
+validation, renderer polish, helper respawn + SelectionCapturer tests, README.
 
 ---
 

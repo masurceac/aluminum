@@ -1143,7 +1143,7 @@ function setupGlobalHook(): void {
 }
 
 function onDoubleShift(): void {
-  // Task 7 replaces this with capture-then-show
+  // Task 9 replaces this with capture-then-show
   toggleOverlay();
 }
 ```

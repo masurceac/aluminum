@@ -72,7 +72,11 @@ export class DoubleTapDetector {
     this.firedOnThisPress = false;
   }
 
-  /** Drop all state (escape hatch for hook restarts). */
+  /**
+   * Drop all state. Intended consumer: a hook-restart path, if one is ever
+   * added — the detector self-heals from missed keyups otherwise. Currently
+   * unwired; delete if no restart path materializes.
+   */
   reset(): void {
     this.lastCleanTapUp = null;
     this.downCode = null;

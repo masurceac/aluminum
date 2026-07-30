@@ -28,6 +28,8 @@ let lastHiddenAt = 0;
 
 const WIN_W = 360;
 const WIN_H = 480;
+/** max gap between the taps of a double-Shift (unrelated to TRAY_BLUR_RACE_MS) */
+const DOUBLE_TAP_MS = 300;
 /** clicking the tray blurs (and hides) the overlay before the click handler
  * runs; a show within this window would make tray-click unable to hide */
 const TRAY_BLUR_RACE_MS = 300;
@@ -156,26 +158,38 @@ function setupTray(): void {
 }
 
 function setupGlobalHook(): void {
-  if (process.platform === 'darwin') {
-    // prompts the user via System Settings on first run; the hook is silent without it
-    const trusted = systemPreferences.isTrustedAccessibilityClient(true);
-    if (!trusted) {
-      console.warn(
-        'Aluminum needs Accessibility permission (System Settings → Privacy & Security → Accessibility). Grant it, then restart.',
-      );
-    }
+  if (process.platform === 'darwin' && !systemPreferences.isTrustedAccessibilityClient(true)) {
+    // the permission prompt above resolves in the user's hands; start() would
+    // throw AXAPI_DISABLED right now, so name the real cause and bail instead
+    dialog.showErrorBox(
+      'Aluminum needs Accessibility permission',
+      'System Settings → Privacy & Security → Accessibility, then restart Aluminum.',
+    );
+    return;
   }
   const detector = new DoubleTapDetector({
     codes: [UiohookKey.Shift, UiohookKey.ShiftRight],
-    windowMs: 300,
+    windowMs: DOUBLE_TAP_MS,
   });
+  // the listener is the error boundary: a throw here would unwind into the
+  // N-API threadsafe callback while the hook keeps reporting "armed"
   uIOhook.on('keydown', (e) => {
-    if (detector.keydown(e.keycode)) {
-      onDoubleShift();
+    try {
+      if (detector.keydown(e.keycode)) {
+        onDoubleShift();
+      }
+    } catch (err) {
+      console.error('double-shift handler failed', err);
     }
   });
   uIOhook.on('keyup', (e) => detector.keyup(e.keycode));
-  uIOhook.start();
+  try {
+    uIOhook.start();
+  } catch (err) {
+    // e.g. SetWindowsHookEx failure — the app must still come up without the hotkey
+    console.error('global hook failed to start', err);
+    dialog.showErrorBox('Aluminum — double-Shift is not available', String(err));
+  }
 }
 
 function onDoubleShift(): void {

@@ -47,6 +47,37 @@ export class ItemStore {
     return item;
   }
 
+  /** rewrite an item's text in place; unknown ids and blank text are no-ops */
+  update(id: string, text: string): void {
+    if (typeof text !== 'string' || !text.trim()) return;
+    const item = this.items.find((i) => i.id === id);
+    if (!item) return;
+    item.text = text;
+    this.save();
+  }
+
+  /**
+   * Join two or more items into one new item (display order, newline-joined),
+   * placed where the topmost of them sat. Returns null unless at least two of
+   * the given ids exist.
+   */
+  merge(ids: string[]): Item | null {
+    const chosen = this.items.filter((i) => ids.includes(i.id));
+    if (chosen.length < 2) return null;
+    const topIndex = this.items.indexOf(chosen[0]);
+    const merged: Item = {
+      id: randomUUID(),
+      text: chosen.map((i) => i.text).join('\n'),
+      done: false,
+      source: chosen[0].source,
+      createdAt: Date.now(),
+    };
+    this.items = this.items.filter((i) => !ids.includes(i.id));
+    this.items.splice(topIndex, 0, merged);
+    this.save();
+    return merged;
+  }
+
   setDone(id: string, done: boolean): void {
     const item = this.items.find((i) => i.id === id);
     if (!item) return;

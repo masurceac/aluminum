@@ -190,6 +190,18 @@ function setupIpc(): void {
     store.remove(id);
     pushItems();
   });
+  ipcMain.handle('items:update', (e, id: unknown, text: unknown) => {
+    if (!isTrustedSender(e)) return;
+    if (typeof id !== 'string' || typeof text !== 'string' || !text.trim()) return;
+    store.update(id, text);
+    pushItems();
+  });
+  ipcMain.handle('items:merge', (e, ids: unknown) => {
+    if (!isTrustedSender(e)) return;
+    if (!Array.isArray(ids) || !ids.every((i): i is string => typeof i === 'string')) return;
+    store.merge(ids);
+    pushItems();
+  });
   ipcMain.handle('clipboard:copyOut', (e, text: unknown) => {
     if (!isTrustedSender(e)) return;
     if (typeof text !== 'string') return;

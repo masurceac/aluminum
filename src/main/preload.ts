@@ -8,6 +8,11 @@ const api: AluminumApi = {
   setDone: (id: string, done: boolean): Promise<void> =>
     ipcRenderer.invoke('items:setDone', id, done),
   removeItem: (id: string): Promise<void> => ipcRenderer.invoke('items:remove', id),
+  /** rewrite an item's text (inline edit) */
+  updateItem: (id: string, text: string): Promise<void> =>
+    ipcRenderer.invoke('items:update', id, text),
+  /** join the given items into one (display order, newline-joined) */
+  mergeItems: (ids: string[]): Promise<void> => ipcRenderer.invoke('items:merge', ids),
   /** copy text to system clipboard and hide the overlay */
   copyOut: (text: string): Promise<void> => ipcRenderer.invoke('clipboard:copyOut', text),
   hide: (): Promise<void> => ipcRenderer.invoke('overlay:hide'),

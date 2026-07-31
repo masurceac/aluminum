@@ -373,6 +373,56 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
 .item .copy i::before { left: 3.5px; top: 0; }
 .item .copy i::after { left: 0; top: 3.5px; background: var(--glass-solid); }
 
+/* inline editor — replaces the text span in place, same metrics */
+.item textarea.edit {
+  flex: 1;
+  min-width: 0;
+  margin-top: 1px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  resize: none;
+  font: inherit;
+  line-height: 1.42;
+  color: var(--fg);
+  caret-color: var(--accent);
+}
+.item.mono textarea.edit {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12.5px;
+}
+
+/* ─── Context menu — small frosted card ─── */
+#menu {
+  position: fixed;
+  z-index: 10;
+  min-width: 168px;
+  padding: 4px;
+  border-radius: 11px;
+  background: var(--glass-solid);
+  box-shadow:
+    0 14px 34px -12px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 0.5px var(--faint);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+#menu button {
+  border: none;
+  background: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 100ms;
+}
+#menu button:hover { background: var(--hover); }
+#menu button.danger:hover { background: var(--hover); color: var(--danger); }
+
 /* ─── Empty & error states (rendered as a presentation row in the list) ─── */
 #list:has(.empty) { justify-content: center; }
 .empty {

@@ -15,6 +15,10 @@ export interface AluminumApi {
   addItem(text: string): Promise<void>;
   setDone(id: string, done: boolean): Promise<void>;
   removeItem(id: string): Promise<void>;
+  /** rewrite an item's text (inline edit) */
+  updateItem(id: string, text: string): Promise<void>;
+  /** join the given items into one (display order, newline-joined) */
+  mergeItems(ids: string[]): Promise<void>;
   /** copy text to system clipboard and hide the overlay */
   copyOut(text: string): Promise<void>;
   hide(): Promise<void>;

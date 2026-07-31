@@ -38,16 +38,20 @@ In the overlay:
 
 | Key | Action |
 |---|---|
-| type + `Enter` | add a manual item |
+| type + `Enter` | add a manual item — typing also **live-filters** the list |
 | `ArrowDown` / `ArrowUp` | move the selection (from the input, `ArrowDown` enters the list; `ArrowUp` off the top returns to the input) |
-| `Space` | toggle done on the selected item |
-| `Enter`, `Ctrl+C` / `Cmd+C` | copy the selected item to the clipboard and hide the overlay |
-| `Delete` or `Backspace` | remove the selected item (Backspace too — Mac laptops have no forward-delete) |
-| `Escape` | hide the overlay |
+| `Shift+ArrowDown/Up` | extend the selection over multiple items |
+| `Space` | toggle done on the selected item(s) |
+| `Enter`, `Ctrl+C` / `Cmd+C` | copy the selection to the clipboard and hide the overlay — multiple items are joined as lines ("copy as list") |
+| `F2` | edit the selected item in place (`Enter` saves, `Shift+Enter` newline, `Escape` cancels) |
+| `Delete` or `Backspace` | remove the selected item(s) (Backspace too — Mac laptops have no forward-delete) |
+| `Escape` | clear the filter if one is typed, otherwise hide the overlay |
 
-The mouse works as well: click to select, click the checkbox to toggle done,
-hover a row to reveal its copy and ✕ buttons, double-click a row to copy it
-out. Clicking away (blur) or clicking the tray / menu-bar icon also hides the
+The mouse works as well: click to select (`Ctrl+click` toggles, `Shift+click`
+ranges), click the checkbox to toggle done, hover a row to reveal its copy and
+✕ buttons, double-click a row to copy it out. Right-click opens a context menu
+— Copy / Copy as list, Edit, Mark as done, Merge (multi-selection), Delete.
+Clicking away (blur) or clicking the tray / menu-bar icon also hides the
 overlay; the tray icon's context menu has Show / Hide and Quit.
 
 The window itself is a frosted-glass panel: drag it by the titlebar, resize it

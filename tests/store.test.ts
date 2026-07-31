@@ -55,6 +55,46 @@ describe('ItemStore', () => {
     expect(s.getAll()[0].text).toBe('second');
   });
 
+  it('update() rewrites text and persists', () => {
+    const s = new ItemStore(file);
+    const item = s.add('typo tex', 'capture');
+    s.update(item.id, 'typo text — fixed');
+    expect(s.getAll()[0].text).toBe('typo text — fixed');
+    expect(s.getAll()[0].source).toBe('capture'); // source survives an edit
+    const s2 = new ItemStore(file);
+    expect(s2.getAll()[0].text).toBe('typo text — fixed');
+  });
+
+  it('update() ignores unknown id and empty text', () => {
+    const s = new ItemStore(file);
+    const item = s.add('keep me', 'manual');
+    s.update('nope', 'other');
+    s.update(item.id, '   ');
+    expect(s.getAll()[0].text).toBe('keep me');
+  });
+
+  it('merge() joins items in list order into one new item, removes originals', () => {
+    const s = new ItemStore(file);
+    const a = s.add('first', 'manual');
+    const b = s.add('second', 'capture');
+    const c = s.add('third', 'manual');
+    // list order is newest-first: third, second, first
+    const merged = s.merge([a.id, c.id]);
+    expect(merged?.text).toBe('third\nfirst'); // joined in DISPLAY order, not arg order
+    expect(s.getAll()).toHaveLength(2);
+    expect(s.getAll().map((i) => i.text)).toEqual(['third\nfirst', 'second']);
+    // merged item takes the topmost original's place
+    expect(s.getAll()[0].id).not.toBe(b.id);
+  });
+
+  it('merge() with fewer than two known ids does nothing', () => {
+    const s = new ItemStore(file);
+    const a = s.add('solo', 'manual');
+    expect(s.merge([a.id])).toBeNull();
+    expect(s.merge([a.id, 'ghost'])).toBeNull();
+    expect(s.getAll()).toHaveLength(1);
+  });
+
   it('toggles done', () => {
     const s = new ItemStore(file);
     const item = s.add('x', 'manual');

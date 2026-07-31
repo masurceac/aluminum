@@ -865,6 +865,28 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   remember the OWNER of the desktop can dismiss the overlay involuntarily — verify with
 >   `showInactive()` at a fixed position (no focus steal) or while the user is away.
 
+> **As-built (2026-07-30, interaction slice):** four features layered on the redesign,
+> all keyboard-first, no new deps:
+> - **Inline edit** — F2 or context-menu Edit swaps the row text for a textarea (Enter
+>   saves, Shift+Enter newline, Escape cancels, blur saves). New `items:update` IPC →
+>   `ItemStore.update(id, text)` (blank text and unknown ids are no-ops; source survives).
+> - **Live filter** — the add-input doubles as filter; typing narrows the list (case-
+>   insensitive substring), Enter still adds, first Escape clears the filter, second hides.
+>   Selection resets on every filter keystroke; "No matches" empty row.
+> - **Multi-select** — `selectedIds` Set + focus row + range anchor. Shift+arrows and
+>   Shift/Ctrl+click extend; Space/Delete act on the whole selection; Enter / Ctrl+C
+>   copies the selection joined with newlines ("copy as list") and hides.
+> - **Context menu + merge** — custom DOM menu (frosted card, no native Menu): Copy /
+>   Copy as list, Edit (single), Mark as done/not done, Merge N items (multi), Delete.
+>   Merge is `items:merge` IPC → `ItemStore.merge(ids)`: joins display-order texts with
+>   newlines into a new item at the topmost original's slot (needs ≥2 known ids).
+> - Store behavior covered in `tests/store.test.ts` (update/merge cases; 59 tests total).
+> - **Test-harness pitfall:** `keybd_event`-injected Shift is NOT reflected in the DOM
+>   `shiftKey` of subsequently injected keys — use `SendKeys "+{DOWN}"` style injection
+>   when E2E-testing modifier chords. And NEVER rewrite `items.json` with PowerShell
+>   `Out-File utf8` (writes a BOM → store quarantines the file as corrupt); use
+>   `[IO.File]::WriteAllText` with BOM-less UTF8.
+
 **Files:**
 - Modify: `src/renderer/index.html`, `src/renderer/renderer.ts`, `src/renderer/style.css` (replace placeholders)
 

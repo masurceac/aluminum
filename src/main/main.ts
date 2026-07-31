@@ -320,6 +320,15 @@ function setupTray(): void {
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: 'Show / Hide', click: toggleOverlay },
+      {
+        label: 'Launch at startup',
+        type: 'checkbox',
+        // dev would register the bare electron.exe, which launches without the
+        // app — only a packaged build can meaningfully self-start
+        enabled: app.isPackaged,
+        checked: app.getLoginItemSettings().openAtLogin,
+        click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked }),
+      },
       { type: 'separator' },
       { label: 'Quit', click: () => app.quit() },
     ]),

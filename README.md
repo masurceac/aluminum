@@ -3,7 +3,7 @@
 Copper-style quick-capture list for Windows and macOS. A tray / menu-bar app
 with an always-on-top overlay: double-tap Shift anywhere to grab the current
 text selection into a hybrid to-do / clipboard list, and copy items back out
-with one key. Local dev build — no signing, no installer, no auto-update.
+with one key. Local build — no signing, no auto-update.
 
 ## Setup
 
@@ -24,6 +24,27 @@ app. Without it the global Shift hook stays silent and capture returns nothing.
 
 The app runs fine without a built helper: double-tap Shift then just toggles
 the overlay, and a warning is logged at startup.
+
+## Install (standalone build)
+
+    npm run package
+
+builds the helper, bundles the app, and produces a standalone build under
+`release/`:
+
+- **Windows** — `release/Aluminum-win32-x64/`, a portable folder; run
+  `Aluminum.exe` from wherever you put it (e.g. copy the folder to
+  `%LOCALAPPDATA%\Programs\Aluminum`). No installer, nothing touches the
+  registry until you opt in below.
+- **macOS** — `release/Aluminum-darwin-*/Aluminum.app`; drag it into
+  `/Applications`.
+
+**Launch at startup** — right-click the tray icon and tick *Launch at
+startup*. This registers the packaged exe/app with the OS login items
+(Windows: `HKCU` Run key; macOS: Login Items); untick to remove. The item is
+disabled in dev runs, where it would register the bare Electron binary. If
+you move the app folder afterwards, re-tick it so the registration points at
+the new path.
 
 ## Use
 

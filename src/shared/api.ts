@@ -49,6 +49,9 @@ export interface AluminumApi {
   onShown(cb: () => void): () => void;
   /** fires after a summon when the clipboard held text worth offering */
   onSuggest(cb: (text: string) => void): () => void;
+  /** fires after a summon that captured (or bumped) a selection — carries the
+   * item's id so the overlay can open with it selected */
+  onCaptured(cb: (id: string) => void): () => void;
   /** fires when the window enters/leaves the maximized state */
   onMaximizedChanged(cb: (maximized: boolean) => void): () => void;
 }

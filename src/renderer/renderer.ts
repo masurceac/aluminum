@@ -633,6 +633,16 @@ function start(): void {
   document.getElementById('suggest-add')?.addEventListener('click', acceptSuggestion);
   document.getElementById('suggest-dismiss')?.addEventListener('click', hideSuggestion);
   api.onSuggest(showSuggestion);
+  // a fresh capture arrives pre-selected: Enter right after double-shift
+  // copies it back out with no arrowing. Blur the input so the keyboard
+  // claim sits on the list — while the input is focused the list shortcuts
+  // (Enter/Space/Delete) are inert.
+  api.onCaptured((id) => {
+    selectSingle(id);
+    scrollToFocus = true;
+    input.blur();
+    render();
+  });
 
   // restore the saved theme/mode before first paint settles; defaults apply
   // when storage is empty or holds a name from a since-removed palette

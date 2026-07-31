@@ -51,6 +51,12 @@ const api: AluminumApi = {
     ipcRenderer.on('capture:suggest', handler);
     return () => ipcRenderer.removeListener('capture:suggest', handler);
   },
+  /** fires after a summon that captured (or bumped) a selection */
+  onCaptured: (cb: (id: string) => void): (() => void) => {
+    const handler = (_e: unknown, id: string) => cb(id);
+    ipcRenderer.on('capture:captured', handler);
+    return () => ipcRenderer.removeListener('capture:captured', handler);
+  },
   /** fires when the window enters/leaves the maximized state */
   onMaximizedChanged: (cb: (maximized: boolean) => void): (() => void) => {
     const handler = (_e: unknown, maximized: boolean) => cb(maximized);

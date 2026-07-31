@@ -399,6 +399,8 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
   capturing = true;
   /** clipboard-fallback text offered to the user AFTER the overlay shows */
   let suggestion: string | null = null;
+  /** the item this capture added or bumped — arrives pre-selected in the overlay */
+  let capturedId: string | null = null;
   try {
     // capture BEFORE showing the overlay — the foreign app must still be focused
     const captured = await capturer.capture();
@@ -410,8 +412,12 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
       if (captured.from === 'selection') {
         // a real selection is unambiguous intent: add it, or bump the existing
         // duplicate to the top instead of stacking another copy
-        if (existing) store.bump(existing.id);
-        else store.add(captured.text, 'capture');
+        if (existing) {
+          store.bump(existing.id);
+          capturedId = existing.id;
+        } else {
+          capturedId = store.add(captured.text, 'capture').id;
+        }
         pushItems();
       } else if (!existing) {
         // clipboard fallback is a guess — offer it as a one-click suggestion
@@ -427,8 +433,9 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
     capturing = false;
   }
   showOverlay();
-  // after overlay:shown, so the renderer's summon reset can't clear it
+  // after overlay:shown, so the renderer's summon reset can't clear these
   if (suggestion) win?.webContents.send('capture:suggest', suggestion);
+  if (capturedId) win?.webContents.send('capture:captured', capturedId);
 }
 
 const gotLock = app.requestSingleInstanceLock();

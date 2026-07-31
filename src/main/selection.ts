@@ -135,7 +135,13 @@ export class SelectionCapturer {
    * user intent. `from: 'clipboard'` is the fallback — text the user copied at
    * some earlier point, which callers should treat as a guess, not a command.
    */
-  async capture(): Promise<{ text: string; from: 'selection' | 'clipboard' } | null> {
+  async capture(opts?: {
+    /** fires the moment the synthesized copy chord has been posted — from
+     * here on the capture no longer depends on the foreign app keeping
+     * focus, so the caller can show UI without waiting for the clipboard
+     * poll to run its full budget */
+    onCopyPosted?: () => void;
+  }): Promise<{ text: string; from: 'selection' | 'clipboard' } | null> {
     const res = await this.request('CAPTURE');
     if (res.startsWith('OK ')) {
       const text = Buffer.from(res.slice(3), 'base64').toString('utf8').slice(0, MAX_CAPTURE_CHARS);
@@ -148,7 +154,7 @@ export class SelectionCapturer {
     // Cmd+C, which never doubles as interrupt the way Ctrl+C does in
     // terminals, so synthesizing it is safe there (and only there).
     if (this.platform === 'darwin') {
-      const copied = await this.captureViaCopy();
+      const copied = await this.captureViaCopy(opts?.onCopyPosted);
       if (copied !== null) return { text: copied, from: 'selection' };
     }
 
@@ -165,7 +171,7 @@ export class SelectionCapturer {
    * when the clipboard holds a flavor we could not restore afterwards — an
    * image or a file list.
    */
-  private async captureViaCopy(): Promise<string | null> {
+  private async captureViaCopy(onCopyPosted?: () => void): Promise<string | null> {
     if (!this.proc) return null;
     const restorable = clipboard
       .availableFormats()
@@ -180,6 +186,8 @@ export class SelectionCapturer {
     clipboard.clear();
     try {
       if ((await this.request('COPYKEY')) !== 'OK') return null;
+      // the chord is in the HID stream: focus changes can no longer hurt it
+      onCopyPosted?.();
       for (let waited = 0; waited < COPY_POLL_MS; waited += COPY_POLL_STEP_MS) {
         await new Promise((r) => setTimeout(r, COPY_POLL_STEP_MS));
         const text = clipboard.readText();

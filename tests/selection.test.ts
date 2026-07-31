@@ -239,6 +239,24 @@ describe('SelectionCapturer.capture — macOS synthetic copy', () => {
     cap.stop();
   });
 
+  it('fires onCopyPosted once the chord is out, before the poll completes', async () => {
+    const cap = makeCapturer('darwin');
+    const posted = vi.fn();
+    const p = cap.capture({ onCopyPosted: posted });
+
+    say('ERR no-selected-text\n');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(posted).not.toHaveBeenCalled(); // not before the helper confirms
+    say('OK\n');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(posted).toHaveBeenCalledTimes(1); // fired while the poll still runs
+
+    clip = 'terminal text';
+    await vi.advanceTimersByTimeAsync(50);
+    expect(await p).toEqual({ text: 'terminal text', from: 'selection' });
+    cap.stop();
+  });
+
   it('never synthesizes a copy over a clipboard flavor it cannot restore', async () => {
     vi.mocked(clipboard.availableFormats).mockReturnValue(['image/png']);
     const cap = makeCapturer('darwin');

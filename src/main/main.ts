@@ -401,9 +401,19 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
   let suggestion: string | null = null;
   /** the item this capture added or bumped — arrives pre-selected in the overlay */
   let capturedId: string | null = null;
+  // The AX read must finish before the overlay steals focus (frontmost-app
+  // queries would start answering "Aluminum"), but the slow branch — the
+  // clipboard poll after a synthesized Cmd+C — must not hold the summon
+  // back: show as soon as the chord is posted and let the item pop in.
+  let shown = false;
+  const showNow = (): void => {
+    if (shown) return;
+    shown = true;
+    showOverlay();
+  };
   try {
-    // capture BEFORE showing the overlay — the foreign app must still be focused
-    const captured = await capturer.capture();
+    // capture (at least the focus-dependent part) BEFORE showing the overlay
+    const captured = await capturer.capture({ onCopyPosted: showNow });
     // our own copy-out echoing back through the clipboard fallback is not a
     // capture — treating it as one bumps the just-copied item to the top and
     // the next Enter copies it again
@@ -432,7 +442,7 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
   } finally {
     capturing = false;
   }
-  showOverlay();
+  showNow();
   // after overlay:shown, so the renderer's summon reset can't clear these
   if (suggestion) win?.webContents.send('capture:suggest', suggestion);
   if (capturedId) win?.webContents.send('capture:captured', capturedId);

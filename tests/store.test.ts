@@ -95,6 +95,59 @@ describe('ItemStore', () => {
     expect(s.getAll()).toHaveLength(1);
   });
 
+  it('bump() moves an item to the top and refreshes createdAt', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+    const s = new ItemStore(file);
+    const a = s.add('old capture', 'capture');
+    vi.setSystemTime(2000);
+    s.add('newer', 'manual');
+    vi.setSystemTime(9000);
+    s.bump(a.id);
+    expect(s.getAll()[0].text).toBe('old capture');
+    expect(s.getAll()[0].createdAt).toBe(9000); // re-captured = fresh again
+    vi.useRealTimers();
+  });
+
+  it('bump() with unknown id is a no-op', () => {
+    const s = new ItemStore(file);
+    s.add('a', 'manual');
+    s.add('b', 'manual');
+    s.bump('ghost');
+    expect(s.getAll().map((i) => i.text)).toEqual(['b', 'a']);
+  });
+
+  it('setPinned() sets and clears the flag, and persists', () => {
+    const s = new ItemStore(file);
+    const a = s.add('keep handy', 'manual');
+    s.setPinned(a.id, true);
+    expect(s.getAll()[0].pinned).toBe(true);
+    const s2 = new ItemStore(file);
+    expect(s2.getAll()[0].pinned).toBe(true);
+    s2.setPinned(a.id, false);
+    expect(s2.getAll()[0].pinned).toBe(false);
+  });
+
+  it('replaceAll() swaps the whole list (undo restore path) and persists', () => {
+    const s = new ItemStore(file);
+    s.add('will be deleted', 'manual');
+    const snapshot = s.getAll();
+    s.remove(snapshot[0].id);
+    expect(s.getAll()).toHaveLength(0);
+    s.replaceAll(snapshot);
+    expect(s.getAll()).toHaveLength(1);
+    expect(s.getAll()[0].text).toBe('will be deleted');
+    const s2 = new ItemStore(file);
+    expect(s2.getAll()).toHaveLength(1);
+  });
+
+  it('replaceAll() rejects malformed entries wholesale', () => {
+    const s = new ItemStore(file);
+    s.add('survivor', 'manual');
+    s.replaceAll([{ id: 'x' } as never]);
+    expect(s.getAll()[0].text).toBe('survivor'); // invalid restore is a no-op
+  });
+
   it('toggles done', () => {
     const s = new ItemStore(file);
     const item = s.add('x', 'manual');

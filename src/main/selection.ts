@@ -123,16 +123,17 @@ export class SelectionCapturer {
   }
 
   /**
-   * Returns the selected text of the focused foreign app, or null.
-   * Primary: native accessibility API (UIA TextPattern / AXSelectedText).
-   * Fallback: synthesized Ctrl+C / Cmd+C + clipboard save/restore, for apps
-   * that don't expose a selection to the accessibility tree.
+   * Returns the selected text of the focused foreign app, tagged with where it
+   * came from, or null. `from: 'selection'` is a real selection read via the
+   * native accessibility API (UIA TextPattern / AXSelectedText) — unambiguous
+   * user intent. `from: 'clipboard'` is the fallback — text the user copied at
+   * some earlier point, which callers should treat as a guess, not a command.
    */
-  async capture(): Promise<string | null> {
+  async capture(): Promise<{ text: string; from: 'selection' | 'clipboard' } | null> {
     const res = await this.request('CAPTURE');
     if (res.startsWith('OK ')) {
       const text = Buffer.from(res.slice(3), 'base64').toString('utf8').slice(0, MAX_CAPTURE_CHARS);
-      if (text.trim()) return text;
+      if (text.trim()) return { text, from: 'selection' };
     }
 
     // No readable selection. Fall back to whatever the user already copied.
@@ -142,6 +143,6 @@ export class SelectionCapturer {
     // clearing the clipboard first, destroying any flavor we couldn't restore.
     // Reading what's already there costs nothing and breaks nothing.
     const text = clipboard.readText().slice(0, MAX_CAPTURE_CHARS);
-    return text.trim() ? text : null;
+    return text.trim() ? { text, from: 'clipboard' } : null;
   }
 }

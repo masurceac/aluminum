@@ -85,6 +85,40 @@ export class ItemStore {
     this.save();
   }
 
+  setPinned(id: string, pinned: boolean): void {
+    const item = this.items.find((i) => i.id === id);
+    if (!item) return;
+    item.pinned = pinned;
+    this.save();
+  }
+
+  /** re-capture of an existing text: move it to the top and make it fresh */
+  bump(id: string): void {
+    const idx = this.items.findIndex((i) => i.id === id);
+    if (idx === -1) return;
+    const [item] = this.items.splice(idx, 1);
+    item.createdAt = Date.now();
+    this.items.unshift(item);
+    this.save();
+  }
+
+  /** swap the whole list — the undo path. A malformed array is a no-op. */
+  replaceAll(items: Item[]): void {
+    if (!Array.isArray(items) || !items.every(ItemStore.isItem)) return;
+    this.items = [...items];
+    this.save();
+  }
+
+  private static isItem(i: unknown): i is Item {
+    return (
+      i !== null &&
+      typeof i === 'object' &&
+      typeof (i as Item).id === 'string' &&
+      typeof (i as Item).text === 'string' &&
+      typeof (i as Item).done === 'boolean'
+    );
+  }
+
   remove(id: string): void {
     const idx = this.items.findIndex((i) => i.id === id);
     if (idx === -1) return;

@@ -9,9 +9,10 @@ import {
   dialog,
   screen,
   systemPreferences,
+  nativeTheme,
 } from 'electron';
 import { join } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { uIOhook, UiohookKey } from 'uiohook-napi';
 import { DoubleTapDetector } from './double-tap';
 import { ItemStore } from './store';
@@ -26,6 +27,13 @@ let tray: Tray | null = null;
 let store: ItemStore;
 let capturer: SelectionCapturer;
 let isQuitting = false;
+/** pinned/docked: behave like a normal app window — no blur-hide, taskbar
+ * entry, not always-on-top — so it can live snapped beside other windows */
+let docked = false;
+/** the last text WE wrote to the clipboard (copy-out). The capture fallback
+ * reads the clipboard, so without this the app re-captures its own output on
+ * the next double-Shift and bumps it back to the top — a copy/paste loop. */
+let lastSelfCopied: string | null = null;
 /** when the overlay last hid itself on blur — guards the tray-click race */
 let lastHiddenAt = 0;
 /** when the overlay was last shown — guards the foreground-handoff blur bounce */
@@ -41,7 +49,7 @@ const TRAY_BLUR_RACE_MS = 300;
 /** how long the OS foreground handoff may take to stop bouncing focus */
 const SHOW_SETTLE_MS = 400;
 
-// 16x16 solid-color tray icon (base64 PNG) — placeholder, any icon works
+// 16x16 fallback tray icon (base64 PNG) — used only if assets/ went missing
 const TRAY_PNG =
   'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAKUlEQVR4nGNgYGD4' +
   'z0AswK4SlwHYFTMwMDAwMTAwMFCsmYGBgQEA98cBBQ1qXO4AAAAASUVORK5CYII=';
@@ -64,14 +72,48 @@ function createStore(): ItemStore {
   });
 }
 
+/** last user-chosen window size, persisted across launches (position always
+ * follows the cursor, so only the size is worth remembering) */
+function sizeFilePath(): string {
+  return join(app.getPath('userData'), 'window.json');
+}
+
+function loadSavedSize(): { width: number; height: number } {
+  try {
+    const raw = JSON.parse(readFileSync(sizeFilePath(), 'utf8')) as {
+      width?: unknown;
+      height?: unknown;
+    };
+    if (typeof raw.width === 'number' && typeof raw.height === 'number') {
+      return { width: Math.max(320, raw.width), height: Math.max(400, raw.height) };
+    }
+  } catch {
+    /* first run or unreadable — use defaults */
+  }
+  return { width: WIN_W, height: WIN_H };
+}
+
+function saveSize(): void {
+  if (!win || win.isMaximized()) return;
+  const { width, height } = win.getBounds();
+  try {
+    writeFileSync(sizeFilePath(), JSON.stringify({ width, height }), 'utf8');
+  } catch {
+    /* best effort */
+  }
+}
+
 function createWindow(): void {
+  const size = loadSavedSize();
   win = new BrowserWindow({
-    width: WIN_W,
-    height: WIN_H,
+    width: size.width,
+    height: size.height,
     minWidth: 320,
     minHeight: 400,
     show: false,
     frame: false,
+    // taskbar / Alt-Tab identity (dev builds otherwise show Electron's icon)
+    icon: join(app.getAppPath(), 'assets', 'icon.ico'),
     resizable: true, // titlebar is a drag region; edges resize
     skipTaskbar: true,
     alwaysOnTop: true,
@@ -94,6 +136,7 @@ function createWindow(): void {
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true }); // macOS spaces
   win.loadFile(join(__dirname, 'index.html'));
   win.on('blur', () => {
+    if (docked) return; // a docked window stays put when focus leaves
     if (!win?.isVisible()) return; // already hidden explicitly — not a blur-hide
     // Handing us the foreground bounces focus once on its way in, and that
     // bounce arrives as a blur — hiding on it makes the first double-Shift
@@ -110,6 +153,10 @@ function createWindow(): void {
     lastHiddenAt = Date.now();
     win.hide();
   });
+  // renderer mirrors the maximize state (restore icon, layout hints)
+  win.on('maximize', () => win?.webContents.send('overlay:maximized', true));
+  win.on('unmaximize', () => win?.webContents.send('overlay:maximized', false));
+  win.on('resized', saveSize);
   // a tray app's window must never be destroyed (Alt+F4 / Cmd+W send close);
   // a destroyed window would leave every later win.* call throwing forever
   win.on('close', (e) => {
@@ -124,8 +171,8 @@ function showOverlay(): void {
   // position near the cursor, clamped to the work area (work-area origin wins
   // when the area is smaller than the window, so the top-left stays reachable).
   // The window is user-resizable, so clamp with its CURRENT size, and leave a
-  // maximized window where it is.
-  if (!win.isMaximized()) {
+  // maximized window — or one the user parked somewhere while docked — alone.
+  if (!win.isMaximized() && !docked) {
     const { width: w, height: h } = win.getBounds();
     const cursor = screen.getCursorScreenPoint();
     const display = screen.getDisplayNearestPoint(cursor);
@@ -136,6 +183,9 @@ function showOverlay(): void {
   }
   shownAt = Date.now();
   win.show();
+  // a real summon (vs mere refocus): the renderer resets its transient UI —
+  // selection, filter, pending edit — only on this signal
+  win.webContents.send('overlay:shown');
   win.focus();
   app.focus({ steal: true }); // macOS: activate the app, not just the window
   // Windows: show()/focus() only draw us on top — the OS keeps keyboard focus
@@ -202,9 +252,37 @@ function setupIpc(): void {
     store.merge(ids);
     pushItems();
   });
+  ipcMain.handle('items:acceptSuggestion', (e, text: unknown) => {
+    if (!isTrustedSender(e)) return;
+    if (typeof text !== 'string' || !text.trim()) return;
+    // same semantics as a real capture, just human-approved
+    const existing = store.getAll().find((i) => i.text === text);
+    if (existing) store.bump(existing.id);
+    else store.add(text, 'capture');
+    pushItems();
+  });
+  ipcMain.handle('items:setPinned', (e, id: unknown, pinned: unknown) => {
+    if (!isTrustedSender(e)) return;
+    if (typeof id !== 'string' || typeof pinned !== 'boolean') return;
+    store.setPinned(id, pinned);
+    pushItems();
+  });
+  ipcMain.handle('items:restore', (e, items: unknown) => {
+    if (!isTrustedSender(e)) return;
+    // shape validation lives in the store — a bad payload is a no-op there
+    store.replaceAll(items as never);
+    pushItems();
+  });
+  ipcMain.handle('clipboard:copy', (e, text: unknown) => {
+    if (!isTrustedSender(e)) return;
+    if (typeof text !== 'string') return;
+    lastSelfCopied = text;
+    clipboard.writeText(text); // copy-and-stay: no hide
+  });
   ipcMain.handle('clipboard:copyOut', (e, text: unknown) => {
     if (!isTrustedSender(e)) return;
     if (typeof text !== 'string') return;
+    lastSelfCopied = text;
     clipboard.writeText(text);
     win?.hide();
   });
@@ -218,10 +296,25 @@ function setupIpc(): void {
     if (win.isMaximized()) win.unmaximize();
     else win.maximize();
   });
+  ipcMain.handle('overlay:setDocked', (e, next: unknown) => {
+    if (!isTrustedSender(e)) return;
+    if (typeof next !== 'boolean' || !win) return;
+    docked = next;
+    win.setSkipTaskbar(!docked);
+    win.setAlwaysOnTop(!docked, 'screen-saver');
+  });
+  ipcMain.handle('theme:setMode', (e, mode: unknown) => {
+    if (!isTrustedSender(e)) return;
+    // themeSource drives both the renderer's prefers-color-scheme and the
+    // acrylic/vibrancy backdrop tint — one switch, whole panel follows
+    if (mode === 'system' || mode === 'light' || mode === 'dark') nativeTheme.themeSource = mode;
+  });
 }
 
 function setupTray(): void {
-  const icon = nativeImage.createFromBuffer(Buffer.from(TRAY_PNG, 'base64'));
+  // brand icon; createFromPath picks up the @2x variant for hidpi trays
+  let icon = nativeImage.createFromPath(join(app.getAppPath(), 'assets', 'tray.png'));
+  if (icon.isEmpty()) icon = nativeImage.createFromBuffer(Buffer.from(TRAY_PNG, 'base64'));
   tray = new Tray(icon);
   tray.setToolTip('Aluminum');
   tray.setContextMenu(
@@ -304,14 +397,27 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
   }
   if (capturing) return;
   capturing = true;
+  /** clipboard-fallback text offered to the user AFTER the overlay shows */
+  let suggestion: string | null = null;
   try {
     // capture BEFORE showing the overlay — the foreign app must still be focused
-    const text = await capturer.capture();
-    // the clipboard fallback returns the same text every time until the user
-    // copies something new; don't stack identical items on repeat double-Shifts
-    if (text && text !== store.getAll()[0]?.text) {
-      store.add(text, 'capture');
-      pushItems();
+    const captured = await capturer.capture();
+    // our own copy-out echoing back through the clipboard fallback is not a
+    // capture — treating it as one bumps the just-copied item to the top and
+    // the next Enter copies it again
+    if (captured && captured.text !== lastSelfCopied) {
+      const existing = store.getAll().find((i) => i.text === captured.text);
+      if (captured.from === 'selection') {
+        // a real selection is unambiguous intent: add it, or bump the existing
+        // duplicate to the top instead of stacking another copy
+        if (existing) store.bump(existing.id);
+        else store.add(captured.text, 'capture');
+        pushItems();
+      } else if (!existing) {
+        // clipboard fallback is a guess — offer it as a one-click suggestion
+        // instead of silently inserting stale clipboard contents
+        suggestion = captured.text;
+      }
     }
   } catch (err) {
     // a capture failure must never swallow the overlay — the invariant is
@@ -321,6 +427,8 @@ async function onDoubleShift(skipCapture = false): Promise<void> {
     capturing = false;
   }
   showOverlay();
+  // after overlay:shown, so the renderer's summon reset can't clear it
+  if (suggestion) win?.webContents.send('capture:suggest', suggestion);
 }
 
 const gotLock = app.requestSingleInstanceLock();

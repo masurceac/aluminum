@@ -35,7 +35,7 @@
  * when the main process enables it, and over the window's solid background
  * color everywhere else, so no fallback branching is needed here. */
 :root {
-  --glass: rgba(253, 251, 248, 0.74);
+  --glass: rgba(253, 251, 248, 0.82);
   --glass-solid: #fdfbf8;
   --fg: #221c17;
   --mfg: #7d7168;
@@ -46,14 +46,15 @@
   --accent: #c2510a;
   --on-accent: #fffaf5;
   --danger: #b3321a;
-  --sel-bg: rgba(194, 81, 10, 0.11);
+  /* derived from --accent so accent palettes below don't restate it */
+  --sel-bg: color-mix(in srgb, var(--accent) 11%, transparent);
   /* check glyph as data URI — url() cannot read custom properties, so each
    * theme bakes its own stroke color (the on-accent tone) */
   --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%23fffaf5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --glass: rgba(38, 32, 28, 0.72);
+    --glass: rgba(38, 32, 28, 0.8);
     --glass-solid: #262019;
     --fg: #f6efe7;
     --mfg: #a2958a;
@@ -64,8 +65,45 @@
     --accent: #f0872d;
     --on-accent: #1d1410;
     --danger: #ef8a6d;
-    --sel-bg: rgba(240, 135, 45, 0.14);
+    --sel-bg: color-mix(in srgb, var(--accent) 14%, transparent);
     --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%231d1410' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+}
+
+/* ─── Accent palettes — metal family, picked in the titlebar popover ───
+ * Each overrides only --accent / --on-accent / --check; everything else
+ * (--sel-bg, focus rings, brand mark, highlights) derives from --accent.
+ * Copper is the default (no data-theme attribute). */
+:root[data-theme='steel'] {
+  --accent: #23689b;
+  --on-accent: #f3f9ff;
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%23f3f9ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+:root[data-theme='brass'] {
+  --accent: #9c7c10;
+  --on-accent: #fffbe9;
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%23fffbe9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+:root[data-theme='patina'] {
+  --accent: #0e7a6a;
+  --on-accent: #effffa;
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%23effffa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='steel'] {
+    --accent: #64a6db;
+    --on-accent: #0e1b26;
+    --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%230e1b26' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  :root[data-theme='brass'] {
+    --accent: #d8b544;
+    --on-accent: #211a06;
+    --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%23211a06' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  :root[data-theme='patina'] {
+    --accent: #43c3ab;
+    --on-accent: #08201b;
+    --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpolyline points='2,6.2 4.7,8.9 10,3.3' fill='none' stroke='%2308201b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 }
 
@@ -83,6 +121,18 @@ body {
   flex-direction: column;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  /* rim: a hairline inner highlight so the panel reads as an object even over
+   * a background the same tone as the glass */
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    box-shadow:
+      inset 0 0 0 0.5px rgba(255, 255, 255, 0.09),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
 }
 
 /* summon: the window scales in with the caret already live — renderer adds
@@ -153,11 +203,39 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   border-radius: 1px;
   background: var(--mfg);
 }
+#theme-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 65%, #ffffff), var(--accent));
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+}
+#win-pin { color: var(--mfg); }
+#win-pin svg { transform: rotate(35deg); transition: transform 140ms ease; }
+#win-pin.docked { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+#win-pin.docked svg { transform: rotate(0deg); }
 #win-max span {
+  position: relative;
   width: 9px;
   height: 9px;
   border: 1.5px solid var(--mfg);
   border-radius: 3px;
+}
+/* maximized: the icon becomes two offset squares = "restore" */
+#win-max.maximized span {
+  width: 8px;
+  height: 8px;
+}
+#win-max.maximized span::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--mfg);
+  border-radius: 3px;
+  background: transparent;
 }
 
 /* ─── Input — soft field, accent focus ring ─── */
@@ -192,14 +270,81 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
 #new-item::placeholder { color: var(--mfg); }
 #new-item:disabled { opacity: 0.45; }
 
+/* ─── Clipboard suggestion — an offer, not an insertion ─── */
+#suggest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 8px 8px;
+  padding: 7px 7px 7px 11px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+  flex: none;
+  width: calc(100% - 16px);
+  max-width: 736px;
+  align-self: center;
+  animation: suggest-in 200ms cubic-bezier(0.2, 0.9, 0.3, 1.05);
+}
+@keyframes suggest-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#suggest-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+#suggest-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+#suggest-text {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#suggest button {
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  flex: none;
+  transition: background 110ms, color 110ms;
+}
+#suggest-add {
+  height: 26px;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+#suggest-add:hover { background: color-mix(in srgb, var(--accent) 86%, #000000); }
+#suggest-dismiss {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: none;
+  color: var(--mfg);
+  font-size: 12px;
+}
+#suggest-dismiss:hover { background: var(--hover); color: var(--fg); }
+
 /* ─── List — soft pill rows ─── */
 #list {
   list-style: none;
   padding: 0 8px 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--cb) transparent;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -208,6 +353,28 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   width: 100%;
   max-width: 752px;
   margin-inline: auto;
+}
+/* scrollbar: invisible at rest, thumb appears on hover over the list */
+#list::-webkit-scrollbar { width: 9px; }
+#list::-webkit-scrollbar-track { background: transparent; }
+#list::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 5px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+#list:hover::-webkit-scrollbar-thumb { background-color: var(--cb); }
+
+/* section headers: Pinned / Today / Yesterday / Earlier */
+.group {
+  padding: 10px 11px 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mfg);
+  opacity: 0.8;
+  user-select: none;
 }
 
 .item {
@@ -239,12 +406,14 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
 }
 .item.selected::before { opacity: 1; }
 
-/* checkbox — squircle that fills with accent; check draws in */
+/* done toggle — a CIRCLE, deliberately: a square checkbox reads as "select
+ * this row" (mail clients, file managers); the ring that fills with a check
+ * is the task-complete idiom (Reminders, Todoist) */
 .item input[type='checkbox'] {
   appearance: none;
   width: 17px;
   height: 17px;
-  border-radius: 6px;
+  border-radius: 50%;
   border: 1.5px solid var(--cb);
   background: transparent center / 11px no-repeat;
   flex: none;
@@ -252,6 +421,7 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   cursor: pointer;
   transition: background-color 150ms cubic-bezier(0.34, 1.5, 0.64, 1), border-color 150ms ease;
 }
+.item input[type='checkbox']:hover { border-color: var(--accent); }
 /* ::before/::after never render on replaced elements like <input>, so the
  * check glyph rides in as a background image instead */
 .item input[type='checkbox']:checked {
@@ -279,29 +449,50 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+  max-height: 40px;
   text-wrap: pretty;
-  transition: color 150ms ease;
+  transition: color 150ms ease, max-height 170ms ease;
   /* dblclick copies the item — it must not also leave a word highlighted */
   user-select: none;
   word-break: break-word;
 }
-/* the keyboard-selected row expands to full text */
+/* the keyboard-selected row grows to show more (animated via max-height —
+ * capped at ~8 lines so arrowing over a huge capture can't fill the window) */
 .item.selected .text {
-  -webkit-line-clamp: 24;
-  line-clamp: 24;
+  -webkit-line-clamp: 8;
+  line-clamp: 8;
+  max-height: 156px;
 }
+/* filter matches */
+.item .text mark {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+/* just-captured row announces itself once */
+@keyframes enter {
+  0% { opacity: 0; transform: translateY(-5px); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  60% { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  100% { opacity: 1; transform: translateY(0); background: transparent; }
+}
+.item.enter { animation: enter 650ms ease-out; }
 .item.mono .text {
   font-family: 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 12.5px;
   word-break: break-all;
 }
-.item.done .text { color: var(--mfg); }
+.item.done .text {
+  color: var(--mfg);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--mfg) 55%, transparent);
+}
 
 /* trailing column: meta (glyph + age) at rest, actions when live */
 .item .tail {
   position: relative;
   flex: none;
-  width: 52px;
+  width: 60px;
   height: 24px;
   margin-top: -1px;
 }
@@ -324,7 +515,8 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   pointer-events: none;
 }
 .item .meta .glyph { font-size: 11px; opacity: 0.8; font-variant-caps: normal; }
-.item .meta .age { font-variant-numeric: tabular-nums; }
+/* normal caps: small-caps would render "2m" as "2M" — minutes, not months */
+.item .meta .age { font-variant-caps: normal; font-variant-numeric: tabular-nums; }
 .item .actions {
   gap: 1px;
   opacity: 0;
@@ -393,6 +585,91 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   font-size: 12.5px;
 }
 
+/* the id selectors below set display:flex, which outranks the UA's
+ * [hidden]{display:none} — restate it or .hidden never actually hides */
+#menu[hidden],
+#toast[hidden],
+#suggest[hidden],
+#themes[hidden] { display: none; }
+
+/* ─── Theme popover — frosted card under the titlebar swatch button ─── */
+#themes {
+  position: fixed;
+  top: 38px;
+  right: 62px;
+  z-index: 12;
+  min-width: 176px;
+  padding: 10px 11px 11px;
+  border-radius: 12px;
+  background: var(--glass-solid);
+  box-shadow:
+    0 14px 34px -12px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 0.5px var(--faint);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  animation: suggest-in 160ms cubic-bezier(0.2, 0.9, 0.3, 1.05);
+}
+#themes .t-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--mfg);
+  user-select: none;
+}
+#themes .t-label + .t-label,
+#mode-seg + .t-label { margin-top: 3px; }
+#theme-swatches { display: flex; gap: 8px; }
+.swatch {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 120ms cubic-bezier(0.34, 1.5, 0.64, 1);
+}
+.swatch:hover { transform: scale(1.12); }
+.swatch[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* swatches show their own metal, not the active accent */
+.swatch[data-theme='copper'] { background: linear-gradient(135deg, #f0872d, #c2510a); }
+.swatch[data-theme='steel'] { background: linear-gradient(135deg, #64a6db, #23689b); }
+.swatch[data-theme='brass'] { background: linear-gradient(135deg, #d8b544, #9c7c10); }
+.swatch[data-theme='patina'] { background: linear-gradient(135deg, #43c3ab, #0e7a6a); }
+#mode-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--field);
+  box-shadow: inset 0 0 0 0.5px var(--faint);
+}
+#mode-seg button {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 4px 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--mfg);
+  cursor: pointer;
+  transition: background 110ms, color 110ms;
+}
+#mode-seg button:hover { color: var(--fg); }
+#mode-seg button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+#mode-seg button:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+
 /* ─── Context menu — small frosted card ─── */
 #menu {
   position: fixed;
@@ -421,7 +698,51 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   transition: background 100ms;
 }
 #menu button:hover { background: var(--hover); }
-#menu button.danger:hover { background: var(--hover); color: var(--danger); }
+#menu button.danger { color: var(--danger); }
+#menu button.danger:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); }
+#menu .sep {
+  height: 1px;
+  margin: 3px 6px;
+  background: var(--faint);
+}
+
+/* ─── Undo toast ─── */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px 7px 13px;
+  border-radius: 11px;
+  background: var(--glass-solid);
+  box-shadow:
+    0 12px 28px -10px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 0.5px var(--faint);
+  font-size: 12.5px;
+  color: var(--fg);
+  animation: toast-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+#toast button {
+  border: none;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 110ms;
+}
+#toast button:hover { background: color-mix(in srgb, var(--accent) 24%, transparent); }
 
 /* ─── Empty & error states (rendered as a presentation row in the list) ─── */
 #list:has(.empty) { justify-content: center; }
@@ -470,15 +791,33 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
 #status {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  height: 27px;
+  height: 28px;
   padding: 0 13px;
   flex: none;
   box-shadow: inset 0 0.5px 0 var(--faint);
-  font-size: 12px;
+  font-size: 12.5px;
   font-variant-caps: all-small-caps;
   letter-spacing: 0.05em;
   color: var(--mfg);
 }
 #status .error { color: var(--danger); }
+#status .flash { color: var(--accent); }
+#status-left { flex: 1; }
+#status #clear-all {
+  border: none;
+  background: none;
+  padding: 2px 7px;
+  margin-right: -7px;
+  border-radius: 6px;
+  font: inherit;
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.05em;
+  color: var(--mfg);
+  cursor: pointer;
+  transition: background 110ms, color 110ms;
+}
+#status #clear-all:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}

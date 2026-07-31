@@ -887,6 +887,73 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   `Out-File utf8` (writes a BOM → store quarantines the file as corrupt); use
 >   `[IO.File]::WriteAllText` with BOM-less UTF8.
 
+> **As-built (2026-07-31, polish batch):** implemented from the UI/UX review, all E2E-verified:
+> - **Undo** — snapshot-based: `offerUndo()` copies the list before delete / multi-delete /
+>   merge / clear-done, shows a 5 s toast (Undo button or Ctrl+Z) that calls `items:restore`
+>   → `ItemStore.replaceAll(items)` (whole-array shape validation; bad payload = no-op).
+> - **Copy semantics split** — Enter/dblclick = copy + hide (`clipboard:copyOut`); Ctrl+C,
+>   row copy button, and menu Copy = copy + STAY (`clipboard:copy`) with a footer flash.
+> - **Whole-list dedupe** — capture path finds an existing item with identical text and
+>   `ItemStore.bump(id)`s it to the top (createdAt refreshed) instead of duplicating.
+> - **Real-summon reset** — main sends `overlay:shown` from `showOverlay()`; the renderer
+>   resets selection/filter/edit ONLY on that signal, never on mere window focus.
+> - **Paste-to-add** — document-level paste handler; multi-line clipboard becomes one item
+>   verbatim (an `<input>` would flatten newlines). **Drag-out** — rows are `draggable`,
+>   `dragstart` sets `text/plain` (selection joined when multi).
+> - **Groups** — unfiltered list renders Pinned / Today / Yesterday / Earlier headers
+>   (`sectionOf()`); a leading "Today" header is suppressed as noise. **Pin** via context
+>   menu → `items:setPinned` → `ItemStore.setPinned`; pinned sort first in `visibleItems()`.
+> - **Filter highlight** (`<mark>` on matches), context-sensitive footer hints, 30 s age
+>   refresh (skipped while editing/menu open), edit survives re-renders (textarea draft +
+>   caret carried across), scroll-into-view only after keyboard navigation.
+> - **Window** — size persisted to `userData/window.json` (position still follows cursor);
+>   maximize button flips to a restore glyph via `overlay:maximized` events; real tray icon
+>   generated from the brand mark (`assets/tray.png` + `@2x`, base64 square kept as fallback).
+> - Store additions covered by tests: `bump`, `setPinned`, `replaceAll` (64 tests total).
+> - **Follow-ups landed same day:** footer hint spells "space" (the ␣ glyph read as a dash)
+>   and footer type is 12.5px; footer **clear all** button (undoable — `items:restore` with
+>   `[]` plus the snapshot toast); **pin/dock mode** — titlebar pin button or Ctrl+P toggles
+>   `overlay:setDocked`: blur-hide disabled, `setSkipTaskbar(false)`, always-on-top off, and
+>   `showOverlay()` stops repositioning to the cursor, so the window can be snapped beside
+>   other apps (session-scoped; unpin restores overlay behavior).
+> - **Self-capture loop fix:** main tracks `lastSelfCopied` (set by both copy IPCs); the
+>   double-Shift capture path ignores text equal to it — otherwise the clipboard fallback
+>   re-captures the app's own copy-out and bumps that item back to the top, so the next
+>   Enter pastes the same thing again. **Window icon:** `assets/icon.ico` (16-256px,
+>   PNG-compressed entries, generated from the brand mark) wired via the BrowserWindow
+>   `icon` option — dev builds otherwise show Electron's default in taskbar/Alt-Tab.
+> - **Clipboard capture is now a SUGGESTION, not an insertion.** `capture()` returns
+>   `{ text, from: 'selection' | 'clipboard' }`; a real selection still auto-adds/bumps,
+>   but the clipboard fallback sends `capture:suggest` (after `overlay:shown`, so the
+>   summon reset can't clear it) and the renderer shows an accent offer card under the
+>   input — one-click Add (`items:acceptSuggestion`, same add-or-bump semantics) or ✕.
+>   Suggestions are skipped for text already in the list and for `lastSelfCopied`.
+> - **CSS trap fixed (do not regress):** `#menu`/`#toast`/`#suggest` set `display:flex`
+>   by id — that OUTRANKS the UA's `[hidden]{display:none}`, so `el.hidden = true` did
+>   nothing (the undo toast never disappeared). Explicit `#x[hidden]{display:none}` rules
+>   restore the contract; any new overlay element with a display rule needs the same.
+> - **Done toggle is a circle:** the square squircle read as "select this row" (mail/file
+>   manager idiom); circle-that-fills-with-check is the task-complete idiom. Done text
+>   gains a soft strikethrough; hovering the ring previews accent. Toggling also
+>   `selectSingle`s the row (then blurs the checkbox so Delete/arrows work immediately);
+>   no immediate render — it would rebuild from stale items and revert the check until
+>   the store push lands.
+> - **Click-again deselects:** a plain click on the sole selected row clears the
+>   selection (focus returns to the input via `render()`); Ctrl/Shift clicks unchanged.
+> - **Source glyph dropped:** rows no longer show ⇧/↵ before the age (user request — read
+>   as noise); only the ✦ pinned marker remains in `.meta`.
+> - **Themes (2026-07-31):** titlebar swatch button opens a `#themes` popover with four
+>   accent palettes — Copper (default), Steel, Brass, Patina — and an Auto/Light/Dark
+>   appearance segment. Palettes are pure CSS: `:root[data-theme='x']` overrides only
+>   `--accent`/`--on-accent`/`--check` (each palette has light + dark variants under the
+>   media query; `--sel-bg` now derives from `--accent` via `color-mix`). Appearance goes
+>   through `theme:setMode` IPC → `nativeTheme.themeSource`, which flips BOTH the
+>   renderer's `prefers-color-scheme` and the acrylic/vibrancy backdrop tint. Both
+>   choices persist in renderer `localStorage` (`theme`, `themeMode`) and are re-applied
+>   in `start()`; unknown stored values fall back to copper/system. Popover closes on
+>   Escape, click-away, and every summon. (`#themes[hidden]` is in the display:none
+>   restatement rule — see the CSS trap above.)
+
 **Files:**
 - Modify: `src/renderer/index.html`, `src/renderer/renderer.ts`, `src/renderer/style.css` (replace placeholders)
 
@@ -1891,5 +1958,5 @@ validation, renderer polish, helper respawn + SelectionCapturer tests, README.
 - Code signing, notarization, Gatekeeper hardening
 - Installer / auto-update / auto-launch at login
 - Multi-line rich text, images, or file clips
-- Settings UI (window size, shortcut choice, theme)
+- Settings UI (window size, shortcut choice) — theme picker shipped 2026-07-31
 - Linux support

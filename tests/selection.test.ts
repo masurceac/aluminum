@@ -138,24 +138,24 @@ describe('SelectionCapturer line protocol', () => {
 });
 
 describe('SelectionCapturer.capture', () => {
-  it('decodes an OK <base64> reply', async () => {
+  it('decodes an OK <base64> reply as a real selection', async () => {
     const cap = makeCapturer();
     const p = cap.capture();
 
     say(`OK ${Buffer.from('hello', 'utf8').toString('base64')}\n`);
 
-    expect(await p).toBe('hello');
+    expect(await p).toEqual({ text: 'hello', from: 'selection' });
     expect(clipboard.clear).not.toHaveBeenCalled();
   });
 
-  it('falls back to the current clipboard when there is no selection', async () => {
+  it('falls back to the current clipboard, marked as such, when there is no selection', async () => {
     vi.mocked(clipboard.readText).mockReturnValue('already copied');
     const cap = makeCapturer();
     const p = cap.capture();
 
     say('ERR no-selection\n');
 
-    expect(await p).toBe('already copied');
+    expect(await p).toEqual({ text: 'already copied', from: 'clipboard' });
     // the fallback only reads: never synthesize a copy, never clear the clipboard
     expect(clipboard.clear).not.toHaveBeenCalled();
     expect(clipboard.write).not.toHaveBeenCalled();
@@ -181,7 +181,7 @@ describe('SelectionCapturer.capture', () => {
 
     proc().emit('exit'); // resolves the pending CAPTURE with ERR helper-exited
 
-    expect(await p).toBe('already copied');
+    expect(await p).toEqual({ text: 'already copied', from: 'clipboard' });
     expect(clipboard.clear).not.toHaveBeenCalled();
     cap.stop();
   });

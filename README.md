@@ -31,6 +31,11 @@ Double-tap Shift in any app: Aluminum captures the current text selection (if
 there is one) as a new item and shows the overlay near the cursor. If the
 overlay is already open **and focused**, double-tap Shift hides it instead.
 
+With no selection to capture, Aluminum does not silently insert your
+clipboard: if the clipboard holds text that isn't in the list yet, the overlay
+offers it in a small **"From clipboard" card** — one click adds it, ✕ (or just
+ignoring it) discards it.
+
 Hold **Ctrl** while double-tapping Shift to open the overlay **without
 capturing anything** — no selection read, no clipboard fallback.
 
@@ -42,22 +47,39 @@ In the overlay:
 | `ArrowDown` / `ArrowUp` | move the selection (from the input, `ArrowDown` enters the list; `ArrowUp` off the top returns to the input) |
 | `Shift+ArrowDown/Up` | extend the selection over multiple items |
 | `Space` | toggle done on the selected item(s) |
-| `Enter`, `Ctrl+C` / `Cmd+C` | copy the selection to the clipboard and hide the overlay — multiple items are joined as lines ("copy as list") |
+| `Enter` | copy the selection and hide the overlay — multiple items are joined as lines ("copy as list") |
+| `Ctrl+C` / `Cmd+C` | copy the selection but **stay open** — keep grabbing; the footer confirms each copy |
+| `Ctrl+V` / `Cmd+V` | add the clipboard as a new item — multi-line text is kept verbatim |
 | `F2` | edit the selected item in place (`Enter` saves, `Shift+Enter` newline, `Escape` cancels) |
-| `Delete` or `Backspace` | remove the selected item(s) (Backspace too — Mac laptops have no forward-delete) |
+| `Delete` or `Backspace` | remove the selected item(s) — an **Undo** toast appears for 5 s (`Ctrl+Z` works too) |
 | `Escape` | clear the filter if one is typed, otherwise hide the overlay |
 
-The mouse works as well: click to select (`Ctrl+click` toggles, `Shift+click`
-ranges), click the checkbox to toggle done, hover a row to reveal its copy and
-✕ buttons, double-click a row to copy it out. Right-click opens a context menu
-— Copy / Copy as list, Edit, Mark as done, Merge (multi-selection), Delete.
-Clicking away (blur) or clicking the tray / menu-bar icon also hides the
-overlay; the tray icon's context menu has Show / Hide and Quit.
+The mouse works as well: click to select — click again to deselect
+(`Ctrl+click` toggles, `Shift+click` ranges), click the round check to toggle done (this also selects the row —
+done items get a strikethrough), hover a row to reveal its copy and
+✕ buttons, double-click a row to copy it out, or **drag a row (or a
+multi-selection) straight into another app** as plain text. Right-click opens
+a context menu — Copy / Copy as list, Edit, Mark as done, Pin, Merge
+(multi-selection), Clear done, Delete. Clicking away (blur) or clicking the
+tray / menu-bar icon also hides the overlay; the tray icon's context menu has
+Show / Hide and Quit.
+
+The list groups itself by age — Pinned, Today, Yesterday, Earlier — and
+re-capturing text that is already in the list bumps the existing item to the
+top instead of duplicating it. Window size is remembered across launches.
 
 The window itself is a frosted-glass panel: drag it by the titlebar, resize it
 from any edge, and use the titlebar buttons to minimize (hide to tray) or
-maximize/restore. Rows show where each item came from — ⇧ for captured, ↵ for
-typed — plus its age; light and dark themes follow the system.
+maximize/restore. Rows show their age (and ✦ when pinned). The titlebar's
+colored dot opens the **theme popover**: four accent palettes — Copper
+(default), Steel, Brass, Patina — plus an Auto / Light / Dark appearance
+switch (Auto follows the system). Both choices persist across restarts.
+
+The **pin button** (or `Ctrl+P`) docks the overlay as a normal window: it
+stops hiding on click-away, appears in the taskbar, and drops always-on-top —
+so you can snap it beside another window (Win+Arrow) and work with both. Pin
+again to return to quick-overlay behavior. A **clear all** button lives in the
+footer; like every destructive action it is undoable for 5 seconds.
 
 Newest items are at the top. Deleting the selected row keeps the selection on
 whatever slides into its place, so repeated `Delete` clears down the list.

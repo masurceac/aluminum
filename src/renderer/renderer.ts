@@ -1,4 +1,4 @@
-import type { AluminumApi, Item } from '../shared/api';
+import type { AluminumApi, Item, ThemeMode } from '../shared/api';
 
 declare global {
   // optional: the property only exists if the preload script actually ran
@@ -10,6 +10,8 @@ const input = document.getElementById('new-item') as HTMLInputElement;
 const list = document.getElementById('list') as HTMLUListElement;
 const statusLeft = document.getElementById('status-left') as HTMLSpanElement;
 const statusRight = document.getElementById('status-right') as HTMLSpanElement;
+const clearAllBtn = document.getElementById('clear-all') as HTMLButtonElement;
+const maxBtn = document.getElementById('win-max') as HTMLButtonElement;
 // nothing below runs unless `bridge` is present (see the bootstrap at the
 // bottom), so the handlers can treat the API as always-there
 const api = bridge as AluminumApi;
@@ -38,12 +40,19 @@ const selectedIds = new Set<string>();
 let focusId: string | null = null;
 let anchorId: string | null = null;
 let editingId: string | null = null;
+/** scroll the focus row into view only after KEYBOARD navigation — a mouse
+ * click elsewhere must not teleport the list */
+let scrollToFocus = false;
+/** ids that just arrived — they get the enter animation exactly once */
+let enterIds = new Set<string>();
+let initialLoadSettled = false;
 
-/** the rows currently shown — the master list narrowed by the live filter */
+/** the rows currently shown: pinned first, then the stream, narrowed by the
+ * live filter */
 function visibleItems(): Item[] {
   const q = input.value.trim().toLowerCase();
-  if (!q) return items;
-  return items.filter((i) => i.text.toLowerCase().includes(q));
+  const base = q ? items.filter((i) => i.text.toLowerCase().includes(q)) : items;
+  return [...base.filter((i) => i.pinned), ...base.filter((i) => !i.pinned)];
 }
 
 function visibleIndexOf(id: string | null): number {
@@ -72,10 +81,74 @@ function selectedItems(): Item[] {
   return visibleItems().filter((i) => selectedIds.has(i.id));
 }
 
-function copySelection(): void {
-  const chosen = selectedItems();
+function selectionText(): string {
+  return selectedItems()
+    .map((i) => i.text)
+    .join('\n');
+}
+
+/* ── transient status flash ("Copied to clipboard") ── */
+
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
+let flashMessage: string | null = null;
+
+function flashStatus(msg: string): void {
+  flashMessage = msg;
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => {
+    flashMessage = null;
+    renderStatus();
+  }, 1400);
+  renderStatus();
+}
+
+/** copy without hiding; the footer confirms */
+function copyStay(text: string, what: string): void {
+  fire(api.copyText(text));
+  flashStatus(`Copied ${what}`);
+}
+
+/* ── undo (snapshot-based, covers delete / merge / clear-done) ── */
+
+const toast = document.createElement('div');
+toast.id = 'toast';
+toast.hidden = true;
+document.body.appendChild(toast);
+
+let undoSnapshot: Item[] | null = null;
+let undoTimer: ReturnType<typeof setTimeout> | undefined;
+
+function dismissToast(): void {
+  toast.hidden = true;
+  undoSnapshot = null;
+  clearTimeout(undoTimer);
+}
+
+function undoNow(): void {
+  if (!undoSnapshot) return;
+  fire(api.restoreItems(undoSnapshot));
+  dismissToast();
+}
+
+/** call BEFORE a destructive mutation; shows the undo toast for 5s */
+function offerUndo(label: string): void {
+  undoSnapshot = items.map((i) => ({ ...i }));
+  clearTimeout(undoTimer);
+  toast.innerHTML = '';
+  const msg = document.createElement('span');
+  msg.textContent = label;
+  const btn = document.createElement('button');
+  btn.textContent = 'Undo';
+  btn.addEventListener('click', undoNow);
+  toast.append(msg, btn);
+  toast.hidden = false;
+  undoTimer = setTimeout(dismissToast, 5000);
+}
+
+function deleteItems(chosen: Item[]): void {
   if (chosen.length === 0) return;
-  fire(api.copyOut(chosen.map((i) => i.text).join('\n')));
+  offerUndo(chosen.length === 1 ? 'Item deleted' : `${chosen.length} items deleted`);
+  for (const i of chosen) fire(api.removeItem(i.id));
 }
 
 /* ── context menu ── */
@@ -94,29 +167,45 @@ function openMenu(x: number, y: number): void {
   if (chosen.length === 0) return;
   const multi = chosen.length > 1;
   const allDone = chosen.every((i) => i.done);
+  const doneCount = items.filter((i) => i.done).length;
   menu.innerHTML = '';
-  const entry = (label: string, act: () => void, danger = false): void => {
+  const entry = (label: string, act: () => void, cls = ''): void => {
     const b = document.createElement('button');
     b.textContent = label;
-    if (danger) b.className = 'danger';
+    if (cls) b.className = cls;
     b.addEventListener('click', () => {
       closeMenu();
       act();
     });
     menu.appendChild(b);
   };
-  entry(multi ? `Copy as list (${chosen.length})` : 'Copy', copySelection);
+  const separator = (): void => {
+    const hr = document.createElement('div');
+    hr.className = 'sep';
+    menu.appendChild(hr);
+  };
+
+  entry(multi ? `Copy as list (${chosen.length})` : 'Copy', () =>
+    copyStay(selectionText(), multi ? `${chosen.length} items` : 'item'),
+  );
   if (!multi) entry('Edit', () => startEdit(chosen[0].id));
+  separator();
   entry(allDone ? 'Mark not done' : 'Mark as done', () => {
     for (const i of chosen) fire(api.setDone(i.id, !allDone));
   });
-  if (multi)
-    entry(`Merge ${chosen.length} items`, () =>
-      fire(api.mergeItems(chosen.map((i) => i.id))),
+  if (!multi)
+    entry(chosen[0].pinned ? 'Unpin' : 'Pin', () =>
+      fire(api.setPinned(chosen[0].id, !chosen[0].pinned)),
     );
-  entry('Delete', () => {
-    for (const i of chosen) fire(api.removeItem(i.id));
-  }, true);
+  if (multi)
+    entry(`Merge ${chosen.length} items`, () => {
+      offerUndo(`${chosen.length} items merged`);
+      fire(api.mergeItems(chosen.map((i) => i.id)));
+    });
+  separator();
+  if (doneCount > 0)
+    entry(`Clear done (${doneCount})`, () => deleteItems(items.filter((i) => i.done)), 'danger');
+  entry(multi ? `Delete ${chosen.length} items` : 'Delete', () => deleteItems(chosen), 'danger');
 
   menu.hidden = false;
   // clamp inside the window once real dimensions exist
@@ -128,6 +217,70 @@ function openMenu(x: number, y: number): void {
 document.addEventListener('mousedown', (e) => {
   if (!menu.hidden && e.target instanceof Node && !menu.contains(e.target)) closeMenu();
 });
+
+/* ── theme — accent palette (CSS) + appearance mode (nativeTheme via IPC) ── */
+
+const THEMES = ['copper', 'steel', 'brass', 'patina'] as const;
+const MODES = ['system', 'light', 'dark'] as const;
+const themesPop = document.getElementById('themes') as HTMLDivElement;
+const themeBtn = document.getElementById('win-theme') as HTMLButtonElement;
+
+function applyTheme(theme: string): void {
+  // copper = no attribute: the base tokens ARE the copper palette
+  if (theme === 'copper') delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+  localStorage.setItem('theme', theme);
+  for (const b of themesPop.querySelectorAll<HTMLButtonElement>('.swatch')) {
+    b.setAttribute('aria-pressed', String(b.dataset.theme === theme));
+  }
+}
+
+function applyMode(mode: ThemeMode): void {
+  fire(api.setThemeMode(mode));
+  localStorage.setItem('themeMode', mode);
+  for (const b of themesPop.querySelectorAll<HTMLButtonElement>('#mode-seg button')) {
+    b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  }
+}
+
+function closeThemes(): void {
+  themesPop.hidden = true;
+  themeBtn.setAttribute('aria-expanded', 'false');
+}
+
+function toggleThemes(): void {
+  themesPop.hidden = !themesPop.hidden;
+  themeBtn.setAttribute('aria-expanded', String(!themesPop.hidden));
+}
+
+document.addEventListener('mousedown', (e) => {
+  if (themesPop.hidden || !(e.target instanceof Node)) return;
+  if (!themesPop.contains(e.target) && !themeBtn.contains(e.target)) closeThemes();
+});
+
+/* ── clipboard suggestion — the fallback capture offers instead of inserting ── */
+
+const suggestEl = document.getElementById('suggest') as HTMLDivElement;
+const suggestText = document.getElementById('suggest-text') as HTMLSpanElement;
+let suggestion: string | null = null;
+
+function showSuggestion(text: string): void {
+  suggestion = text;
+  // single-line preview; the row it becomes will clamp properly anyway
+  suggestText.textContent = text.replace(/\s+/g, ' ').trim();
+  suggestEl.hidden = false;
+}
+
+function hideSuggestion(): void {
+  suggestion = null;
+  suggestEl.hidden = true;
+}
+
+function acceptSuggestion(): void {
+  if (suggestion === null) return;
+  fire(api.acceptSuggestion(suggestion));
+  hideSuggestion();
+}
 
 /* ── inline edit ── */
 
@@ -152,9 +305,22 @@ function cancelEdit(): void {
 function renderStatus(): void {
   const vis = visibleItems();
   const filtering = input.value.trim().length > 0 && document.activeElement === input;
+  clearAllBtn.hidden = items.length === 0;
+  if (flashMessage) {
+    statusLeft.textContent = flashMessage;
+    statusLeft.classList.add('flash');
+    statusRight.textContent = '';
+    return;
+  }
+  statusLeft.classList.remove('flash');
   if (selectedIds.size > 1) {
     statusLeft.textContent = `${selectedIds.size} selected`;
     statusRight.textContent = '↵ copy list · ⌫ delete';
+    return;
+  }
+  if (selectedIds.size === 1) {
+    statusLeft.textContent = 'F2 edit · ⇧↓ extend';
+    statusRight.textContent = 'space done · ↵ copy';
     return;
   }
   if (filtering) {
@@ -170,7 +336,7 @@ function renderStatus(): void {
   const done = items.filter((i) => i.done).length;
   statusLeft.textContent =
     `${items.length} ${items.length === 1 ? 'item' : 'items'}` + (done ? ` · ${done} done` : '');
-  statusRight.textContent = '↑↓ move · ␣ done · ↵ copy';
+  statusRight.textContent = '↑↓ move · space done · ↵ copy';
 }
 
 function emptyRow(text: string, keycaps: boolean): HTMLLIElement {
@@ -195,8 +361,60 @@ function emptyRow(text: string, keycaps: boolean): HTMLLIElement {
   return li;
 }
 
+function groupHeader(label: string): HTMLLIElement {
+  const li = document.createElement('li');
+  li.className = 'group';
+  li.setAttribute('role', 'presentation');
+  li.textContent = label;
+  return li;
+}
+
+/** the section a row belongs to when the list is unfiltered */
+function sectionOf(item: Item): string {
+  if (item.pinned) return 'Pinned';
+  const startOfToday = new Date().setHours(0, 0, 0, 0);
+  if (!item.createdAt || item.createdAt >= startOfToday) return 'Today';
+  if (item.createdAt >= startOfToday - 86_400_000) return 'Yesterday';
+  return 'Earlier';
+}
+
+/** row text with the current filter match highlighted */
+function textNodeFor(item: Item): HTMLSpanElement {
+  const span = document.createElement('span');
+  span.className = 'text';
+  const q = input.value.trim().toLowerCase();
+  if (!q) {
+    span.textContent = item.text;
+    return span;
+  }
+  let rest = item.text;
+  while (rest.length > 0) {
+    const at = rest.toLowerCase().indexOf(q);
+    if (at === -1) {
+      span.appendChild(document.createTextNode(rest));
+      break;
+    }
+    if (at > 0) span.appendChild(document.createTextNode(rest.slice(0, at)));
+    const mark = document.createElement('mark');
+    mark.textContent = rest.slice(at, at + q.length);
+    span.appendChild(mark);
+    rest = rest.slice(at + q.length);
+  }
+  return span;
+}
+
 function render(): void {
   const vis = visibleItems();
+  const filtering = input.value.trim().length > 0;
+
+  // an in-progress edit must survive re-renders (e.g. the 30s age refresh):
+  // carry the live textarea text and caret across the rebuild
+  let editDraft: { value: string; caret: number } | null = null;
+  const liveTa = list.querySelector('textarea.edit') as HTMLTextAreaElement | null;
+  if (liveTa && editingId !== null) {
+    editDraft = { value: liveTa.value, caret: liveTa.selectionStart ?? liveTa.value.length };
+  }
+
   list.innerHTML = '';
 
   if (items.length === 0) {
@@ -204,28 +422,54 @@ function render(): void {
   } else if (vis.length === 0) {
     list.appendChild(emptyRow(`No matches for “${input.value.trim()}”`, false));
   } else {
+    let currentSection: string | null = null;
     vis.forEach((item) => {
+      if (!filtering) {
+        const section = sectionOf(item);
+        if (section !== currentSection) {
+          currentSection = section;
+          // "Today" as the first header is noise — everything is today until
+          // the list spans days or has pins
+          if (!(section === 'Today' && list.children.length === 0)) {
+            list.appendChild(groupHeader(section));
+          }
+        }
+      }
+
       const isSelected = selectedIds.has(item.id);
       const li = document.createElement('li');
       li.className =
         'item' +
         (item.done ? ' done' : '') +
         (isSelected ? ' selected' : '') +
-        (MONO_RE.test(item.text) ? ' mono' : '');
+        (MONO_RE.test(item.text) ? ' mono' : '') +
+        (enterIds.has(item.id) ? ' enter' : '');
+      li.dataset.id = item.id;
       li.setAttribute('role', 'option');
       li.setAttribute('aria-selected', String(isSelected));
 
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.checked = item.done;
-      cb.addEventListener('change', () => fire(api.setDone(item.id, cb.checked)));
+      cb.title = item.done ? 'Mark not done' : 'Mark as done';
+      cb.setAttribute('aria-label', cb.title);
+      cb.addEventListener('change', () => {
+        // acting on a row makes it the active row — Delete right after works.
+        // No immediate render(): it would rebuild from the not-yet-updated
+        // items and visually revert the check until the store push lands.
+        selectSingle(item.id);
+        // focus back to <body>: a focused checkbox swallows the very Delete
+        // (and arrows) the fresh selection is for
+        cb.blur();
+        fire(api.setDone(item.id, cb.checked));
+      });
 
       let body: HTMLElement;
       if (editingId === item.id) {
         const ta = document.createElement('textarea');
         ta.className = 'edit';
-        ta.value = item.text;
-        ta.rows = Math.min(6, item.text.split('\n').length);
+        ta.value = editDraft ? editDraft.value : item.text;
+        ta.rows = Math.min(6, ta.value.split('\n').length);
         ta.addEventListener('keydown', (e) => {
           e.stopPropagation(); // typing must not trigger list shortcuts
           if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
@@ -241,10 +485,7 @@ function render(): void {
         });
         body = ta;
       } else {
-        const text = document.createElement('span');
-        text.className = 'text';
-        text.textContent = item.text;
-        body = text;
+        body = textNodeFor(item);
       }
 
       const tail = document.createElement('span');
@@ -252,13 +493,16 @@ function render(): void {
 
       const meta = document.createElement('span');
       meta.className = 'meta';
-      const glyph = document.createElement('span');
-      glyph.className = 'glyph';
-      glyph.textContent = item.source === 'capture' ? '⇧' : '↵';
+      if (item.pinned) {
+        const glyph = document.createElement('span');
+        glyph.className = 'glyph';
+        glyph.textContent = '✦';
+        meta.append(glyph);
+      }
       const when = document.createElement('span');
       when.className = 'age';
       when.textContent = age(item.createdAt);
-      meta.append(glyph, when);
+      meta.append(when);
 
       const actions = document.createElement('span');
       actions.className = 'actions';
@@ -269,7 +513,7 @@ function render(): void {
       copy.appendChild(document.createElement('i'));
       copy.addEventListener('click', (e) => {
         e.stopPropagation();
-        fire(api.copyOut(item.text));
+        copyStay(item.text, 'item');
       });
       const del = document.createElement('button');
       del.className = 'del';
@@ -278,11 +522,22 @@ function render(): void {
       del.setAttribute('aria-label', 'Delete item');
       del.addEventListener('click', (e) => {
         e.stopPropagation();
-        fire(api.removeItem(item.id));
+        deleteItems([item]);
       });
       actions.append(copy, del);
 
       tail.append(meta, actions);
+
+      // drag a row (or the whole selection) out into any other app
+      if (editingId !== item.id) {
+        li.draggable = true;
+        li.addEventListener('dragstart', (e) => {
+          const text =
+            selectedIds.has(item.id) && selectedIds.size > 1 ? selectionText() : item.text;
+          e.dataTransfer?.setData('text/plain', text);
+          if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copy';
+        });
+      }
 
       li.addEventListener('click', (e) => {
         if (e.target instanceof Node && (cb.contains(e.target) || actions.contains(e.target)))
@@ -296,6 +551,9 @@ function render(): void {
           anchorId = item.id;
         } else if (e.shiftKey) {
           selectRange(item.id);
+        } else if (selectedIds.size === 1 && selectedIds.has(item.id)) {
+          // clicking the sole selected row again deselects it
+          selectSingle(null);
         } else {
           selectSingle(item.id);
         }
@@ -315,17 +573,22 @@ function render(): void {
       list.appendChild(li);
     });
 
-    const focusIndex = visibleIndexOf(focusId);
-    const sel = list.children[focusIndex] as HTMLElement | undefined;
-    sel?.scrollIntoView({ block: 'nearest' });
+    if (scrollToFocus && focusId !== null) {
+      (list.querySelector(`[data-id="${CSS.escape(focusId)}"]`) as HTMLElement | null)
+        ?.scrollIntoView({ block: 'nearest' });
+    }
+    scrollToFocus = false;
     if (editingId !== null) {
       const ta = list.querySelector('textarea.edit') as HTMLTextAreaElement | null;
       if (ta) {
         ta.focus();
-        ta.setSelectionRange(ta.value.length, ta.value.length);
+        const caret = editDraft ? editDraft.caret : ta.value.length;
+        ta.setSelectionRange(caret, caret);
       }
     }
   }
+
+  enterIds = new Set(); // enter animation plays exactly once
 
   renderStatus();
 
@@ -336,7 +599,11 @@ function render(): void {
 
 function setItems(next: Item[]): void {
   const prevIndex = visibleIndexOf(focusId); // index in the OLD visible list
+  const prevIds = new Set(items.map((i) => i.id));
   items = next;
+  if (initialLoadSettled) {
+    enterIds = new Set(next.filter((i) => !prevIds.has(i.id)).map((i) => i.id));
+  }
   const alive = new Set(items.map((i) => i.id));
   for (const id of [...selectedIds]) if (!alive.has(id)) selectedIds.delete(id);
   if (editingId !== null && !alive.has(editingId)) editingId = null;
@@ -358,10 +625,48 @@ function summon(): void {
 }
 
 function start(): void {
+  clearAllBtn.addEventListener('click', () => {
+    if (items.length === 0) return;
+    offerUndo(`All ${items.length} items cleared`);
+    fire(api.restoreItems([])); // one shot; the toast can bring everything back
+  });
+  document.getElementById('suggest-add')?.addEventListener('click', acceptSuggestion);
+  document.getElementById('suggest-dismiss')?.addEventListener('click', hideSuggestion);
+  api.onSuggest(showSuggestion);
+
+  // restore the saved theme/mode before first paint settles; defaults apply
+  // when storage is empty or holds a name from a since-removed palette
+  const savedTheme = localStorage.getItem('theme') ?? 'copper';
+  applyTheme((THEMES as readonly string[]).includes(savedTheme) ? savedTheme : 'copper');
+  const savedMode = localStorage.getItem('themeMode') as ThemeMode | null;
+  applyMode(savedMode !== null && (MODES as readonly string[]).includes(savedMode) ? savedMode : 'system');
+  themeBtn.addEventListener('click', toggleThemes);
+  for (const b of themesPop.querySelectorAll<HTMLButtonElement>('.swatch')) {
+    b.addEventListener('click', () => applyTheme(b.dataset.theme ?? 'copper'));
+  }
+  for (const b of themesPop.querySelectorAll<HTMLButtonElement>('#mode-seg button')) {
+    b.addEventListener('click', () => applyMode(b.dataset.mode as ThemeMode));
+  }
+
+  let dockedState = false;
+  const pinBtn = document.getElementById('win-pin') as HTMLButtonElement;
+  pinBtn.addEventListener('click', () => {
+    dockedState = !dockedState;
+    fire(api.setDocked(dockedState));
+    pinBtn.classList.toggle('docked', dockedState);
+    pinBtn.setAttribute('aria-pressed', String(dockedState));
+    pinBtn.title = dockedState
+      ? 'Unpin (back to quick overlay)'
+      : 'Pin as window (stay open, show in taskbar)';
+    flashStatus(dockedState ? 'Pinned — stays open' : 'Overlay mode');
+  });
   document.getElementById('win-min')?.addEventListener('click', () => fire(api.hide()));
-  document
-    .getElementById('win-max')
-    ?.addEventListener('click', () => fire(api.toggleMaximize()));
+  maxBtn.addEventListener('click', () => fire(api.toggleMaximize()));
+  api.onMaximizedChanged((maximized) => {
+    maxBtn.classList.toggle('maximized', maximized);
+    maxBtn.title = maximized ? 'Restore' : 'Maximize';
+    maxBtn.setAttribute('aria-label', maxBtn.title);
+  });
   document.body.addEventListener('animationend', (e) => {
     if (e.animationName === 'summon') document.body.classList.remove('summon');
   });
@@ -388,6 +693,7 @@ function start(): void {
     }
     if (e.key === 'ArrowDown' && visibleItems().length > 0) {
       selectSingle(visibleItems()[0].id);
+      scrollToFocus = true;
       render();
       e.preventDefault();
       e.stopPropagation(); // keep the document handler from re-incrementing
@@ -395,8 +701,25 @@ function start(): void {
     }
   });
 
+  // paste is capture too: multi-line text pasted anywhere becomes an item
+  // verbatim (an <input> would silently flatten the newlines)
+  document.addEventListener('paste', (e) => {
+    const text = e.clipboardData?.getData('text/plain') ?? '';
+    if (!text.trim()) return;
+    const inInput = document.activeElement === input;
+    if (inInput && !text.includes('\n')) return; // ordinary single-line paste
+    if (!inInput && document.activeElement !== document.body) return;
+    e.preventDefault();
+    fire(api.addItem(text));
+    flashStatus('Added from clipboard');
+  });
+
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (!themesPop.hidden) {
+        closeThemes();
+        return;
+      }
       if (!menu.hidden) {
         closeMenu();
         return;
@@ -404,6 +727,19 @@ function start(): void {
       // an open editor handles its own Escape (stopPropagation) — reaching
       // here means nothing is mid-edit, so Escape dismisses the overlay
       fire(api.hide());
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      if (undoSnapshot) {
+        undoNow();
+        e.preventDefault();
+      }
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+      // pin toggle works from anywhere, even while the input is focused
+      (document.getElementById('win-pin') as HTMLButtonElement).click();
+      e.preventDefault();
       return;
     }
     if (document.activeElement === input) return;
@@ -423,12 +759,19 @@ function start(): void {
         if (next) {
           if (e.shiftKey) selectRange(next.id);
           else selectSingle(next.id);
+          scrollToFocus = true;
           render();
         }
       }
       e.preventDefault();
-    } else if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') || e.key === 'Enter') {
-      copySelection();
+    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+      // copy-and-stay: keep grabbing without re-summoning
+      const chosen = selectedItems();
+      if (chosen.length > 0)
+        copyStay(selectionText(), chosen.length > 1 ? `${chosen.length} items` : 'item');
+    } else if (e.key === 'Enter') {
+      // copy-and-go: the classic grab-and-paste flow
+      if (selectedIds.size > 0) fire(api.copyOut(selectionText()));
     } else if (e.key === 'F2') {
       if (focusId !== null && selectedIds.size === 1) startEdit(focusId);
     } else if (e.key === ' ') {
@@ -438,19 +781,28 @@ function start(): void {
       e.preventDefault();
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       // Backspace too: Mac laptop keyboards have no forward-delete
-      for (const item of selectedItems()) fire(api.removeItem(item.id));
+      deleteItems(selectedItems());
     }
   });
 
-  // the overlay is long-lived and only hidden, so every show must start clean
-  window.addEventListener('focus', () => {
+  // a real summon (main-process signal) resets transient UI; a mere refocus
+  // (alt-tab back) must NOT wipe the user's filter/selection/edit
+  api.onShown(() => {
     selectSingle(null);
     editingId = null;
     input.value = '';
     closeMenu();
+    closeThemes();
+    dismissToast();
+    hideSuggestion(); // each summon brings its own (the suggest event follows)
     summon();
     render(); // render() refocuses the input when nothing is selected
   });
+
+  // ages drift while the overlay sits open; refresh them quietly
+  setInterval(() => {
+    if (document.visibilityState === 'visible' && editingId === null && menu.hidden) render();
+  }, 30_000);
 
   summon();
 
@@ -464,10 +816,12 @@ function start(): void {
     .then((next) => {
       initialLoadDone = true;
       setItems(next);
+      initialLoadSettled = true;
     })
     .catch(() => {
       // a failed first read must not wedge the UI: accept pushes from here on
       initialLoadDone = true;
+      initialLoadSettled = true;
       render();
     });
 }

@@ -18,16 +18,49 @@
       </div>
       <span id="brand-name">Aluminum</span>
     </div>
+    <button id="win-theme" title="Theme" aria-label="Theme" aria-haspopup="true" aria-expanded="false">
+      <span id="theme-dot" aria-hidden="true"></span>
+    </button>
+    <button id="win-pin" title="Pin as window (stay open, show in taskbar)" aria-label="Pin as window" aria-pressed="false">
+      <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true">
+        <circle cx="6" cy="4.4" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+        <line x1="6" y1="7" x2="6" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line>
+      </svg>
+    </button>
     <button id="win-min" title="Minimize" aria-label="Minimize"><span></span></button>
     <button id="win-max" title="Maximize" aria-label="Maximize"><span></span></button>
   </header>
+  <div id="themes" hidden>
+    <div class="t-label">Theme</div>
+    <div id="theme-swatches">
+      <button class="swatch" data-theme="copper" title="Copper" aria-label="Copper" aria-pressed="true"></button>
+      <button class="swatch" data-theme="steel" title="Steel" aria-label="Steel" aria-pressed="false"></button>
+      <button class="swatch" data-theme="brass" title="Brass" aria-label="Brass" aria-pressed="false"></button>
+      <button class="swatch" data-theme="patina" title="Patina" aria-label="Patina" aria-pressed="false"></button>
+    </div>
+    <div class="t-label">Appearance</div>
+    <div id="mode-seg">
+      <button data-mode="system" aria-pressed="true">Auto</button>
+      <button data-mode="light" aria-pressed="false">Light</button>
+      <button data-mode="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
   <div id="input-wrap">
-    <input id="new-item" type="text" placeholder="Type and press Enter…" autofocus>
+    <input id="new-item" type="text" placeholder="Type to add or filter…" autofocus>
+  </div>
+  <div id="suggest" hidden>
+    <div id="suggest-body">
+      <span id="suggest-label">From clipboard</span>
+      <span id="suggest-text"></span>
+    </div>
+    <button id="suggest-add">Add</button>
+    <button id="suggest-dismiss" aria-label="Dismiss suggestion">✕</button>
   </div>
   <ul id="list" role="listbox" aria-label="Captured items"></ul>
   <footer id="status">
     <span id="status-left"></span>
     <span id="status-right"></span>
+    <button id="clear-all" hidden>clear all</button>
   </footer>
   <script src="renderer.js"></script>
 </body>

@@ -95,17 +95,18 @@ func capture() -> String {
 // isTrustedAccessibilityClient(true) check in the Electron main process is
 // what surfaces the permission prompt; this helper does not duplicate it.
 func sendCmdC() -> String {
-    guard let src = CGEventSource(stateID: .hidSystemState) else {
-        return "ERR no-event-source"
-    }
     let kVK_ANSI_C: CGKeyCode = 8
     guard
-        let down = CGEvent(keyboardEventSource: src, virtualKey: kVK_ANSI_C, keyDown: true),
-        let up = CGEvent(keyboardEventSource: src, virtualKey: kVK_ANSI_C, keyDown: false)
+        let down = CGEvent(keyboardEventSource: nil, virtualKey: kVK_ANSI_C, keyDown: true),
+        let up = CGEvent(keyboardEventSource: nil, virtualKey: kVK_ANSI_C, keyDown: false)
     else { return "ERR event-create-failed" }
     down.flags = .maskCommand
     up.flags = .maskCommand
     down.post(tap: .cghidEventTap)
+    // Terminal.app drops a zero-gap chord — worse, it can register the 'c'
+    // WITHOUT the command flag and type a stray character into the shell.
+    // A real keystroke has dwell time; give it one.
+    usleep(30_000)
     up.post(tap: .cghidEventTap)
     return "OK"
 }

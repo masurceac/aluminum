@@ -907,6 +907,13 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   under a `Done` section — completion beats pinning; each partition keeps store order
 >   (newest-first), so the effective sort is [done asc, createdAt desc]. Applies while
 >   filtering too (no headers there).
+>   **Expand-on-demand (2026-07-31):** replaced the `.item.selected .text` auto-expand
+>   (2→8-line clamp on selection made rows below jump on every arrow move). Rows stay at
+>   the 2-line clamp always; `ArrowRight` (single selection) or a `⌄` chevron in `.actions`
+>   expands the one `expandedId` row to the 8-line cap, `ArrowLeft`/selection-move/multi-
+>   select collapses. `.clamped` is measured per-render (`scrollHeight > clientHeight`) and
+>   gates the chevron, the wider 84px `.tail`, and a "→ more" footer hint. Chevron click
+>   also selects the row; `expandedId` is pruned in `setItems` like `selectedIds`.
 > - **Filter highlight** (`<mark>` on matches), context-sensitive footer hints, 30 s age
 >   refresh (skipped while editing/menu open), edit survives re-renders (textarea draft +
 >   caret carried across), scroll-into-view only after keyboard navigation.

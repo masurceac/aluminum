@@ -456,9 +456,11 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   user-select: none;
   word-break: break-word;
 }
-/* the keyboard-selected row grows to show more (animated via max-height —
- * capped at ~8 lines so arrowing over a huge capture can't fill the window) */
-.item.selected .text {
+/* expand-on-demand (ArrowRight / chevron): rows never grow on mere selection,
+ * so arrowing through the list can't reflow it — the layout only moves when
+ * the user asks. Still capped at ~8 lines so a huge capture can't fill the
+ * window. */
+.item.expanded .text {
   -webkit-line-clamp: 8;
   line-clamp: 8;
   max-height: 156px;
@@ -545,6 +547,15 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
 }
 .item .actions .copy:hover { background: var(--hover); color: var(--accent); }
 .item .actions .del:hover { background: var(--hover); color: var(--danger); }
+/* the peek chevron only exists on rows with hidden text (.clamped is measured
+ * per-render) or already expanded; the tail widens to fit the third button */
+.item .actions .more { display: none; font-size: 13px; }
+.item.clamped .actions .more,
+.item.expanded .actions .more { display: flex; }
+.item.clamped .tail,
+.item.expanded .tail { width: 84px; }
+.item .actions .more:hover { background: var(--hover); color: var(--accent); }
+.item.expanded .actions .more { transform: rotate(180deg); }
 .item .actions button:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
 /* copy icon: two offset rounded squares */
 .item .copy i {

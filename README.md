@@ -68,6 +68,7 @@ In the overlay:
 |---|---|
 | type + `Enter` | add a manual item — typing also **live-filters** the list |
 | `ArrowDown` / `ArrowUp` | move the selection (from the input, `ArrowDown` enters the list; `ArrowUp` off the top returns to the input) |
+| `ArrowRight` / `ArrowLeft` | expand / collapse the selected row — rows are clamped to 2 lines and never grow on their own; the footer shows "→ more" when there is hidden text (moving the selection collapses again) |
 | `Shift+ArrowDown/Up` | extend the selection over multiple items |
 | `Space` | toggle done on the selected item(s) |
 | `Enter` | copy the selection and hide the overlay — multiple items are joined as lines ("copy as list") |
@@ -80,7 +81,8 @@ In the overlay:
 The mouse works as well: click to select — click again to deselect
 (`Ctrl+click` toggles, `Shift+click` ranges), click the round check to toggle done (this also selects the row —
 done items get a strikethrough), hover a row to reveal its copy and
-✕ buttons, double-click a row to copy it out, or **drag a row (or a
+✕ buttons (plus a ⌄ chevron on rows with hidden text — click to
+expand/collapse), double-click a row to copy it out, or **drag a row (or a
 multi-selection) straight into another app** as plain text. Right-click opens
 a context menu — Copy / Copy as list, Edit, Mark as done, Pin, Merge
 (multi-selection), Clear done, Delete. Clicking away (blur) or clicking the

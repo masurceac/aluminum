@@ -46,6 +46,10 @@ let scrollToFocus = false;
 /** ids that just arrived — they get the enter animation exactly once */
 let enterIds = new Set<string>();
 let initialLoadSettled = false;
+/** the one row whose text is un-clamped (expand-on-demand via ArrowRight or
+ * the chevron) — rows never grow on mere selection, so the list only ever
+ * reflows when the user explicitly asks for it */
+let expandedId: string | null = null;
 
 /** the rows currently shown: pinned first, then the stream, with done items
  * sunk to the bottom (completion beats pinning), narrowed by the live filter.
@@ -66,6 +70,7 @@ function visibleIndexOf(id: string | null): number {
 }
 
 function selectSingle(id: string | null): void {
+  if (id !== expandedId) expandedId = null; // leaving the row collapses the peek
   selectedIds.clear();
   if (id !== null) selectedIds.add(id);
   focusId = id;
@@ -73,6 +78,7 @@ function selectSingle(id: string | null): void {
 }
 
 function selectRange(toId: string): void {
+  expandedId = null; // a multi-selection has no single row to peek at
   const vis = visibleItems();
   const a = visibleIndexOf(anchorId === null ? toId : anchorId);
   const b = vis.findIndex((i) => i.id === toId);
@@ -325,7 +331,15 @@ function renderStatus(): void {
     return;
   }
   if (selectedIds.size === 1) {
-    statusLeft.textContent = 'F2 edit · ⇧↓ extend';
+    // advertise the peek only when there is hidden text to peek at
+    const row = focusId === null ? null : list.querySelector(`[data-id="${CSS.escape(focusId)}"]`);
+    const peek =
+      expandedId !== null && expandedId === focusId
+        ? '← less'
+        : row?.classList.contains('clamped')
+          ? '→ more'
+          : null;
+    statusLeft.textContent = peek ? `${peek} · F2 edit` : 'F2 edit · ⇧↓ extend';
     statusRight.textContent = 'space done · ↵ copy';
     return;
   }
@@ -449,6 +463,7 @@ function render(): void {
         'item' +
         (item.done ? ' done' : '') +
         (isSelected ? ' selected' : '') +
+        (expandedId === item.id ? ' expanded' : '') +
         (MONO_RE.test(item.text) ? ' mono' : '') +
         (enterIds.has(item.id) ? ' enter' : '');
       li.dataset.id = item.id;
@@ -513,6 +528,21 @@ function render(): void {
 
       const actions = document.createElement('span');
       actions.className = 'actions';
+      // chevron: mouse affordance for expand-on-demand; CSS shows it only on
+      // rows that are actually cut off (.clamped, detected below) or expanded
+      const more = document.createElement('button');
+      more.className = 'more';
+      more.textContent = '⌄';
+      more.title = expandedId === item.id ? 'Show less' : 'Show more';
+      more.setAttribute('aria-label', more.title);
+      more.setAttribute('aria-expanded', String(expandedId === item.id));
+      more.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const next = expandedId === item.id ? null : item.id;
+        selectSingle(item.id); // expanding a row also focuses it
+        expandedId = next; // after selectSingle — it clears the peek on moves
+        render();
+      });
       const copy = document.createElement('button');
       copy.className = 'copy';
       copy.setAttribute('aria-label', 'Copy item');
@@ -531,7 +561,7 @@ function render(): void {
         e.stopPropagation();
         deleteItems([item]);
       });
-      actions.append(copy, del);
+      actions.append(more, copy, del);
 
       tail.append(meta, actions);
 
@@ -580,6 +610,14 @@ function render(): void {
       list.appendChild(li);
     });
 
+    // rows whose text is actually cut off advertise the peek affordance;
+    // measured post-insert (scrollHeight sees the full content, clientHeight
+    // the clamp) — CSS keys the chevron and the "→ more" hint off this
+    list.querySelectorAll('li.item').forEach((el) => {
+      const t = el.querySelector('.text');
+      if (t && t.scrollHeight > t.clientHeight + 1) el.classList.add('clamped');
+    });
+
     if (scrollToFocus && focusId !== null) {
       (list.querySelector(`[data-id="${CSS.escape(focusId)}"]`) as HTMLElement | null)
         ?.scrollIntoView({ block: 'nearest' });
@@ -614,6 +652,7 @@ function setItems(next: Item[]): void {
   const alive = new Set(items.map((i) => i.id));
   for (const id of [...selectedIds]) if (!alive.has(id)) selectedIds.delete(id);
   if (editingId !== null && !alive.has(editingId)) editingId = null;
+  if (expandedId !== null && !alive.has(expandedId)) expandedId = null;
   if (focusId !== null && !alive.has(focusId)) {
     // the focus row was removed: keep the slot so repeat-Delete works
     const vis = visibleItems();
@@ -779,6 +818,22 @@ function start(): void {
           scrollToFocus = true;
           render();
         }
+      }
+      e.preventDefault();
+    } else if (e.key === 'ArrowRight') {
+      // expand-on-demand: the ONLY way a row grows — never on mere selection
+      if (focusId !== null && selectedIds.size === 1 && expandedId !== focusId) {
+        const row = list.querySelector(`[data-id="${CSS.escape(focusId)}"]`);
+        if (row?.classList.contains('clamped')) {
+          expandedId = focusId;
+          render();
+        }
+      }
+      e.preventDefault();
+    } else if (e.key === 'ArrowLeft') {
+      if (expandedId !== null) {
+        expandedId = null;
+        render();
       }
       e.preventDefault();
     } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {

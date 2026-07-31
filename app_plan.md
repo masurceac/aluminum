@@ -900,9 +900,13 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 > - **Paste-to-add** — document-level paste handler; multi-line clipboard becomes one item
 >   verbatim (an `<input>` would flatten newlines). **Drag-out** — rows are `draggable`,
 >   `dragstart` sets `text/plain` (selection joined when multi).
-> - **Groups** — unfiltered list renders Pinned / Today / Yesterday / Earlier headers
+> - **Groups** — unfiltered list renders Pinned / Today / Yesterday / Earlier / Done headers
 >   (`sectionOf()`); a leading "Today" header is suppressed as noise. **Pin** via context
 >   menu → `items:setPinned` → `ItemStore.setPinned`; pinned sort first in `visibleItems()`.
+>   **Done sinks (2026-07-31):** completed items partition to the bottom of `visibleItems()`
+>   under a `Done` section — completion beats pinning; each partition keeps store order
+>   (newest-first), so the effective sort is [done asc, createdAt desc]. Applies while
+>   filtering too (no headers there).
 > - **Filter highlight** (`<mark>` on matches), context-sensitive footer hints, 30 s age
 >   refresh (skipped while editing/menu open), edit survives re-renders (textarea draft +
 >   caret carried across), scroll-into-view only after keyboard navigation.

@@ -47,12 +47,18 @@ let scrollToFocus = false;
 let enterIds = new Set<string>();
 let initialLoadSettled = false;
 
-/** the rows currently shown: pinned first, then the stream, narrowed by the
- * live filter */
+/** the rows currently shown: pinned first, then the stream, with done items
+ * sunk to the bottom (completion beats pinning), narrowed by the live filter.
+ * Every partition keeps store order, which is newest-first. */
 function visibleItems(): Item[] {
   const q = input.value.trim().toLowerCase();
   const base = q ? items.filter((i) => i.text.toLowerCase().includes(q)) : items;
-  return [...base.filter((i) => i.pinned), ...base.filter((i) => !i.pinned)];
+  const undone = base.filter((i) => !i.done);
+  return [
+    ...undone.filter((i) => i.pinned),
+    ...undone.filter((i) => !i.pinned),
+    ...base.filter((i) => i.done),
+  ];
 }
 
 function visibleIndexOf(id: string | null): number {
@@ -371,6 +377,7 @@ function groupHeader(label: string): HTMLLIElement {
 
 /** the section a row belongs to when the list is unfiltered */
 function sectionOf(item: Item): string {
+  if (item.done) return 'Done'; // done rows sit at the list's bottom
   if (item.pinned) return 'Pinned';
   const startOfToday = new Date().setHours(0, 0, 0, 0);
   if (!item.createdAt || item.createdAt >= startOfToday) return 'Today';

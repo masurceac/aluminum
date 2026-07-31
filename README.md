@@ -89,7 +89,8 @@ Show / Hide and Quit.
 
 The list groups itself by age — Pinned, Today, Yesterday, Earlier — and
 re-capturing text that is already in the list bumps the existing item to the
-top instead of duplicating it. Window size is remembered across launches.
+top instead of duplicating it. Completed items sink to a **Done** group at
+the bottom (even pinned ones); unchecking an item floats it back into place. Window size is remembered across launches.
 
 The window itself is a frosted-glass panel: drag it by the titlebar, resize it
 from any edge, and use the titlebar buttons to minimize (hide to tray) or

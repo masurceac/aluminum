@@ -40,8 +40,10 @@ function say(chunk: string): void {
   proc().stdout.emit('data', chunk);
 }
 
-function makeCapturer(): SelectionCapturer {
-  const cap = new SelectionCapturer('helper.exe', spawnFn as unknown as typeof spawn);
+/** win32 by default: the read-only fallback contract below is Windows
+ * behavior; macOS adds the synthetic-copy stage (its own describe block) */
+function makeCapturer(platform: NodeJS.Platform = 'win32'): SelectionCapturer {
+  const cap = new SelectionCapturer('helper.exe', spawnFn as unknown as typeof spawn, platform);
   cap.start();
   return cap;
 }
@@ -156,7 +158,8 @@ describe('SelectionCapturer.capture', () => {
     say('ERR no-selection\n');
 
     expect(await p).toEqual({ text: 'already copied', from: 'clipboard' });
-    // the fallback only reads: never synthesize a copy, never clear the clipboard
+    // the Windows fallback only reads: never synthesize a copy, never clear
+    // the clipboard — Ctrl+C in a terminal can mean interrupt
     expect(clipboard.clear).not.toHaveBeenCalled();
     expect(clipboard.write).not.toHaveBeenCalled();
     expect(proc().stdin.write).not.toHaveBeenCalledWith('COPYKEY\n');
@@ -182,6 +185,69 @@ describe('SelectionCapturer.capture', () => {
     proc().emit('exit'); // resolves the pending CAPTURE with ERR helper-exited
 
     expect(await p).toEqual({ text: 'already copied', from: 'clipboard' });
+    expect(clipboard.clear).not.toHaveBeenCalled();
+    cap.stop();
+  });
+});
+
+describe('SelectionCapturer.capture — macOS synthetic copy', () => {
+  /** stateful clipboard sim: clear/write actually change what readText sees */
+  let clip: string;
+  beforeEach(() => {
+    clip = 'old clip';
+    vi.mocked(clipboard.readText).mockImplementation(() => clip);
+    vi.mocked(clipboard.clear).mockImplementation(() => {
+      clip = '';
+    });
+    vi.mocked(clipboard.write).mockImplementation((d: { text?: string }) => {
+      clip = d.text ?? '';
+    });
+    vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
+  });
+
+  it('captures a terminal-style selection via Cmd+C and restores the clipboard', async () => {
+    const cap = makeCapturer('darwin');
+    const p = cap.capture();
+
+    say('ERR no-selected-text\n'); // AX cannot see xterm selections
+    await vi.advanceTimersByTimeAsync(0); // let the COPYKEY request go out
+    expect(proc().stdin.write).toHaveBeenCalledWith('COPYKEY\n');
+    say('OK\n');
+    await vi.advanceTimersByTimeAsync(0);
+
+    clip = 'ls -la output'; // the app services the copy asynchronously
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(await p).toEqual({ text: 'ls -la output', from: 'selection' });
+    expect(clipboard.write).toHaveBeenCalledWith({ text: 'old clip' });
+    expect(clip).toBe('old clip'); // the user's clipboard survives the capture
+    cap.stop();
+  });
+
+  it('restores the clipboard and degrades to a suggestion when nothing was copied', async () => {
+    const cap = makeCapturer('darwin');
+    const p = cap.capture();
+
+    say('ERR no-selected-text\n');
+    await vi.advanceTimersByTimeAsync(0);
+    say('OK\n');
+    await vi.advanceTimersByTimeAsync(400); // full poll budget, no copy lands
+
+    // the restored clipboard is then offered through the read-only fallback
+    expect(await p).toEqual({ text: 'old clip', from: 'clipboard' });
+    expect(clip).toBe('old clip');
+    cap.stop();
+  });
+
+  it('never synthesizes a copy over a clipboard flavor it cannot restore', async () => {
+    vi.mocked(clipboard.availableFormats).mockReturnValue(['image/png']);
+    const cap = makeCapturer('darwin');
+    const p = cap.capture();
+
+    say('ERR no-selected-text\n');
+
+    expect(await p).toEqual({ text: 'old clip', from: 'clipboard' });
+    expect(proc().stdin.write).not.toHaveBeenCalledWith('COPYKEY\n');
     expect(clipboard.clear).not.toHaveBeenCalled();
     cap.stop();
   });

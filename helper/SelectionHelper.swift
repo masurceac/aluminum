@@ -6,15 +6,66 @@
 // Requires Accessibility permission, attributed to the responsible process
 // (for dev launches from a terminal, grant it to the terminal app).
 import Foundation
+import AppKit
 import ApplicationServices
 import CoreGraphics
 
+/** apps we already asked to turn their AX tree on — retrying the slow wait
+ * loop for them on every capture would delay each summon by ~600ms.
+ * Written from both the watcher thread and the capture path. */
+var axWokenPids = Set<pid_t>()
+let axWokenLock = NSLock()
+
+/** marks pid as woken; returns true when this call was the first to do so */
+func markWoken(_ pid: pid_t) -> Bool {
+    axWokenLock.lock()
+    defer { axWokenLock.unlock() }
+    return axWokenPids.insert(pid).inserted
+}
+
 func capture() -> String {
-    let systemWide = AXUIElementCreateSystemWide()
+    // Primary route: focused element of the frontmost application. The
+    // system-wide route (AXUIElementCreateSystemWide + kAXFocusedUIElement)
+    // returns kAXErrorCannotComplete (-25204) for every query on macOS 26,
+    // so it is only the fallback. The helper has no pumping run loop, and
+    // NSWorkspace refreshes frontmostApplication on run-loop turns — drain
+    // pending sources first so a long-lived helper doesn't see a stale app.
+    RunLoop.current.run(until: Date())
 
     var focusedRef: CFTypeRef?
-    let focusErr = AXUIElementCopyAttributeValue(
-        systemWide, kAXFocusedUIElementAttribute as CFString, &focusedRef)
+    var focusErr = AXError.cannotComplete
+    if let front = NSWorkspace.shared.frontmostApplication {
+        let pid = front.processIdentifier
+        let appEl = AXUIElementCreateApplication(pid)
+        focusErr = AXUIElementCopyAttributeValue(
+            appEl, kAXFocusedUIElementAttribute as CFString, &focusedRef)
+        if focusErr != .success {
+            // Chromium-family apps (Chrome, and Electron apps like Claude,
+            // VS Code, Slack) ship with their accessibility tree disabled
+            // until an assistive client announces itself. Setting
+            // AXManualAccessibility turns it on; the tree then builds
+            // asynchronously, so poll before giving up. The watcher thread
+            // usually did the wake seconds ago — an already-woken app gets
+            // only a short grace for a build still in flight. The total
+            // budget must stay under the client's 1500ms request timeout.
+            let first = markWoken(pid)
+            if first {
+                AXUIElementSetAttributeValue(
+                    appEl, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+            }
+            for _ in 0..<(first ? 12 : 3) {
+                usleep(100_000)
+                focusErr = AXUIElementCopyAttributeValue(
+                    appEl, kAXFocusedUIElementAttribute as CFString, &focusedRef)
+                if focusErr == .success { break }
+            }
+        }
+    }
+    if focusErr != .success || focusedRef == nil {
+        let systemWide = AXUIElementCreateSystemWide()
+        focusErr = AXUIElementCopyAttributeValue(
+            systemWide, kAXFocusedUIElementAttribute as CFString, &focusedRef)
+    }
     guard focusErr == .success, let focusedRef = focusedRef else {
         return "ERR no-focused-element:\(focusErr.rawValue)"
     }
@@ -58,6 +109,31 @@ func sendCmdC() -> String {
     up.post(tap: .cghidEventTap)
     return "OK"
 }
+
+// Pre-wake the frontmost app's AX tree in the background: doing the wake on
+// demand inside capture() can exceed the client's 1500ms request budget on
+// heavy Chromium apps (VS Code takes seconds to build its tree), so the
+// first double-shift in a cold app would miss. By waking whichever app the
+// user focuses, the tree is ready before they can physically double-tap.
+// The thread only sets AX attributes — stdout stays owned by the main loop.
+let axWatcher = Thread {
+    while true {
+        RunLoop.current.run(until: Date()) // refresh NSWorkspace state
+        if let front = NSWorkspace.shared.frontmostApplication {
+            let pid = front.processIdentifier
+            let appEl = AXUIElementCreateApplication(pid)
+            var ref: CFTypeRef?
+            let err = AXUIElementCopyAttributeValue(
+                appEl, kAXFocusedUIElementAttribute as CFString, &ref)
+            if err != .success && markWoken(pid) {
+                AXUIElementSetAttributeValue(
+                    appEl, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+            }
+        }
+        Thread.sleep(forTimeInterval: 1.0)
+    }
+}
+axWatcher.start()
 
 // NOTE: top-level code compiles only while this is the sole file passed to
 // swiftc; a second .swift file in the module would require moving this loop

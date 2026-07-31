@@ -2,6 +2,10 @@ import { spawn, ChildProcessWithoutNullStreams } from 'node:child_process';
 import { clipboard } from 'electron';
 
 const REQUEST_TIMEOUT_MS = 1500;
+/** how long to wait for the foreground app to service a synthesized Cmd+C —
+ * the pasteboard write lands asynchronously after the key event */
+const COPY_POLL_STEP_MS = 50;
+const COPY_POLL_MS = 400;
 /** cap captured text — the store rewrites the whole file on every mutation */
 const MAX_CAPTURE_CHARS = 10_000;
 /** a helper that dies repeatedly is broken, not unlucky: stop after this many
@@ -26,6 +30,8 @@ export class SelectionCapturer {
     private helperPath: string,
     /** injectable for tests; production always uses child_process.spawn */
     private spawnFn: typeof spawn = spawn,
+    /** injectable for tests; production always uses process.platform */
+    private platform: NodeJS.Platform = process.platform,
   ) {}
 
   start(): void {
@@ -136,13 +142,58 @@ export class SelectionCapturer {
       if (text.trim()) return { text, from: 'selection' };
     }
 
-    // No readable selection. Fall back to whatever the user already copied.
-    //
-    // This used to synthesize Ctrl+C into the foreground app, which is hostile:
-    // in terminals Ctrl+C means interrupt, and reading the result required
-    // clearing the clipboard first, destroying any flavor we couldn't restore.
-    // Reading what's already there costs nothing and breaks nothing.
+    // No AX-readable selection. Selections that never reach the accessibility
+    // tree — above all xterm.js terminals (VS Code, Hyper) — are still
+    // reachable by asking the app itself to copy. On macOS the copy chord is
+    // Cmd+C, which never doubles as interrupt the way Ctrl+C does in
+    // terminals, so synthesizing it is safe there (and only there).
+    if (this.platform === 'darwin') {
+      const copied = await this.captureViaCopy();
+      if (copied !== null) return { text: copied, from: 'selection' };
+    }
+
+    // Last resort: whatever the user already copied at some earlier point.
+    // Read-only — never clear, never overwrite.
     const text = clipboard.readText().slice(0, MAX_CAPTURE_CHARS);
     return text.trim() ? { text, from: 'clipboard' } : null;
+  }
+
+  /**
+   * Synthesize Cmd+C into the foreground app, read what appears on the
+   * clipboard, and put the previous contents back (text, HTML and RTF
+   * flavors). Returns null when nothing new was copied. Skipped entirely
+   * when the clipboard holds a flavor we could not restore afterwards — an
+   * image or a file list.
+   */
+  private async captureViaCopy(): Promise<string | null> {
+    if (!this.proc) return null;
+    const restorable = clipboard
+      .availableFormats()
+      .every((f) => f === 'text/plain' || f === 'text/html' || f === 'text/rtf');
+    if (!restorable) return null;
+    const prev = {
+      text: clipboard.readText(),
+      html: clipboard.readHTML(),
+      rtf: clipboard.readRTF(),
+    };
+    // an unchanged clipboard must not read back as a fresh copy
+    clipboard.clear();
+    try {
+      if ((await this.request('COPYKEY')) !== 'OK') return null;
+      for (let waited = 0; waited < COPY_POLL_MS; waited += COPY_POLL_STEP_MS) {
+        await new Promise((r) => setTimeout(r, COPY_POLL_STEP_MS));
+        const text = clipboard.readText();
+        if (text.trim()) return text.slice(0, MAX_CAPTURE_CHARS);
+      }
+      return null;
+    } finally {
+      // capture must not clobber the user's clipboard, whether it worked or not
+      clipboard.clear();
+      const flavors: { text?: string; html?: string; rtf?: string } = {};
+      if (prev.text) flavors.text = prev.text;
+      if (prev.html) flavors.html = prev.html;
+      if (prev.rtf) flavors.rtf = prev.rtf;
+      if (Object.keys(flavors).length > 0) clipboard.write(flavors);
+    }
   }
 }

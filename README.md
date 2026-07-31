@@ -28,7 +28,9 @@ the overlay, and a warning is logged at startup.
 ## Use
 
 Double-tap Shift in any app: Aluminum captures the current text selection (if
-there is one) as a new item and shows the overlay near the cursor. If the
+there is one) as a new item and shows the overlay near the cursor. The
+captured item arrives already selected, so `Enter` immediately copies it
+back out. If the
 overlay is already open **and focused**, double-tap Shift hides it instead.
 
 With no selection to capture, Aluminum does not silently insert your
@@ -98,15 +100,25 @@ line protocol over stdio:
 - Windows: C# (`helper/SelectionHelper.exe`), UI Automation
   `TextPattern.GetSelection()`.
 - macOS: Swift (`helper/SelectionHelper`), Accessibility API
-  `kAXSelectedTextAttribute`.
+  `kAXSelectedTextAttribute`. Chromium-family apps (Chrome, and Electron
+  apps like Claude or VS Code) keep their accessibility tree disabled until
+  an assistive client announces itself, so the helper sets
+  `AXManualAccessibility` on them — a background watcher does it the moment
+  such an app gains focus, so the tree is already built by the first
+  double-tap.
 
-Fallback, for apps that don't expose their selection to the accessibility tree:
-the helper synthesizes Ctrl+C / Cmd+C and Aluminum reads the clipboard, then
-puts the previous contents back (text, HTML and RTF flavors are all restored).
-The fallback is skipped when the clipboard holds a format Aluminum can't
-restore — an image or a file list. (Application-private formats that Electron
-can't see, e.g. live Excel ranges, may still be lost alongside plain text.)
-It is also skipped when the helper isn't running.
+Fallback, for selections the accessibility tree can never see — above all
+xterm.js terminals (VS Code's integrated terminal, Hyper): on macOS the
+helper synthesizes Cmd+C and Aluminum reads the clipboard, then puts the
+previous contents back (text, HTML and RTF flavors are all restored). Cmd+C
+never doubles as interrupt, so this is safe even in terminals. The synthetic
+copy is skipped when the clipboard holds a format Aluminum can't restore —
+an image or a file list — and when the helper isn't running. (Application-
+private formats that Electron can't see, e.g. live Excel ranges, may still
+be lost alongside plain text.) On Windows, where Ctrl+C in a terminal can
+mean interrupt, no copy is ever synthesized; with no readable selection,
+Aluminum instead offers the clipboard's existing text as a one-click
+suggestion card.
 
 Captured text is capped at 10,000 characters. A helper that dies is restarted
 automatically, up to three times in a row.
@@ -144,6 +156,10 @@ task-by-task build plan and carries the as-built notes.
 
 ## Status
 
-Windows 11 is the primary dev target and is verified end to end. The macOS
-helper, permission prompts, and menu-bar behavior are code-complete but
-**deferred verification** — they have not yet been run on Mac hardware.
+Windows 11 is the primary dev target and is verified end to end. On macOS,
+double-tap capture and overlay toggling are verified on macOS 26 (Tahoe).
+The helper reads the selection through the frontmost application's
+accessibility element; the system-wide element
+(`AXUIElementCreateSystemWide`) is only a fallback, because on macOS 26 its
+queries fail with `kAXErrorCannotComplete`. Menu-bar behavior and the
+first-run permission prompt flow remain lightly tested.

@@ -1812,14 +1812,25 @@ git commit -m "feat: selection capture via UIA helper with clipboard fallback"
 > (restart, 3-restart cap, budget re-arm, no restart after `stop()`).
 >
 > **As-built (post-plan, 2026-07-30/31): standalone packaging + launch-at-startup.**
-> `npm run package` (`scripts/package.mjs`, `@electron/packager` devDep) stages the runtime
-> set (`dist/`, `assets/`, the platform helper binary, `uiohook-napi` + `node-gyp-build`
-> dereferenced) into `release/staging` with a minimal package.json, then packages it —
-> macOS: `release/Aluminum-darwin-*/Aluminum.app` (LSUIElement, icon.icns); Windows:
-> portable `release/Aluminum-win32-x64/` folder (icon.ico, win32metadata ProductName /
-> FileDescription). No asar (helper must be spawnable, .node loadable), `prune: false`
-> (staging package.json is dependency-less). The tray context menu gained a
-> **Launch at startup** checkbox: `app.getLoginItemSettings().openAtLogin` /
+> Packaging was first done with `@electron/packager` (portable folder), replaced
+> 2026-08-01 by **electron-builder** (`electron-builder.yml`, modeled on
+> x-trade's) producing real installers: Windows `release/Aluminum-<version>-setup.exe`
+> (NSIS, oneClick: false, per-user, desktop + Start Menu shortcuts, uninstaller);
+> macOS `release/aluminum-<version>.dmg` (LSUIElement via `mac.extendInfo`,
+> icon.icns, notarize: false). `npm run package` = helper + build + `electron-builder`;
+> `npm run package:dir` leaves `release/win-unpacked/` for smoke tests.
+> Key config: `directories.output: release` (builder's default output `dist/`
+> would collide with the esbuild output); `asar: false` (main.ts spawns
+> `helper/SelectionHelper(.exe)` and loads uiohook's `.node` via
+> `app.getAppPath()` — `child_process.spawn` is not asar-patched);
+> `files` lists `dist/**`, `assets/**`, the two helper binaries — package.json
+> and production node_modules (`uiohook-napi` + `node-gyp-build`) are added
+> automatically; `npmRebuild: false` (uiohook ships prebuilds);
+> `signExecutable: false` (no cert — skips signing but still stamps icon +
+> version metadata on the exe; x-trade's `signAndEditExecutable: false` would
+> skip the icon too). Verified 2026-08-01: installer builds, `win-unpacked`
+> app runs, helper spawns from `resources/app/helper/`. The tray context menu
+> gained a **Launch at startup** checkbox: `app.getLoginItemSettings().openAtLogin` /
 > `app.setLoginItemSettings({ openAtLogin })` (Windows HKCU Run key / macOS Login Items),
 > `enabled: app.isPackaged` because a dev toggle would register the bare electron.exe.
 

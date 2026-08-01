@@ -1,0 +1,43 @@
+# Installer config, modeled on x-trade's electron-builder.yml.
+# asar stays off: main.ts spawns helper/SelectionHelper(.exe) and loads
+# uiohook-napi's .node via app.getAppPath() — child_process.spawn is not
+# asar-patched, so the app dir must be real files on disk.
+appId: com.aluminum.app
+productName: Aluminum
+directories:
+  # electron-builder's default output is dist/, which is our esbuild output
+  output: release
+asar: false
+files:
+  # package.json and production node_modules (uiohook-napi + node-gyp-build)
+  # are always added automatically on top of these patterns
+  - dist/**
+  - assets/**
+  - helper/SelectionHelper.exe
+  - helper/SelectionHelper
+win:
+  executableName: Aluminum
+  icon: assets/icon.ico
+  # skip code signing (no cert) but still stamp icon + version metadata on the exe;
+  # x-trade uses signAndEditExecutable: false, which would also skip the icon
+  signExecutable: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-${version}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  target:
+    - dmg
+  icon: assets/icon.icns
+  notarize: false
+  extendInfo:
+    # menu-bar app: no Dock icon, no app switcher entry (main.ts also calls
+    # app.dock.hide(), but LSUIElement avoids even the launch-flash)
+    LSUIElement: true
+dmg:
+  artifactName: ${name}-${version}.${ext}
+# uiohook-napi ships prebuilds resolved by node-gyp-build — no rebuild needed
+npmRebuild: false

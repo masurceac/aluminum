@@ -29,15 +29,18 @@ overlay, and a warning is logged at startup.
 
     npm run package
 
-builds the helper, bundles the app, and produces a standalone build under
-`release/`:
+builds the helper, bundles the app, and produces an installer under
+`release/` (electron-builder, configured in `electron-builder.yml`):
 
-- **Windows** — `release/Aluminum-win32-x64/`, a portable folder; run
-  `Aluminum.exe` from wherever you put it (e.g. copy the folder to
-  `%LOCALAPPDATA%\Programs\Aluminum`). No installer, nothing touches the
-  registry until you opt in below.
-- **macOS** — `release/Aluminum-darwin-*/Aluminum.app`; drag it into
+- **Windows** — `release/Aluminum-<version>-setup.exe`, an NSIS installer
+  (per-user, choose-your-directory, Start Menu + desktop shortcuts, proper
+  uninstall entry). The unsigned exe will trip SmartScreen once — choose
+  *More info → Run anyway*.
+- **macOS** — `release/aluminum-<version>.dmg`; drag Aluminum.app into
   `/Applications`.
+
+`npm run package:dir` skips the installer and leaves the bare app in
+`release/win-unpacked/` (or `release/mac*/`) for a quick look.
 
 **Launch at startup** — right-click the tray icon and tick *Launch at
 startup*. This registers the packaged exe/app with the OS login items

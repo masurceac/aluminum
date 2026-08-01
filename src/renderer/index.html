@@ -47,7 +47,21 @@
     </div>
   </div>
   <div id="input-wrap">
-    <input id="new-item" type="text" placeholder="Search…">
+    <div id="mode-toggle" role="group" aria-label="Input mode">
+      <button id="mode-add" title="Add mode — Enter adds a note" aria-label="Add mode" aria-pressed="true">
+        <!-- the row done-toggle circle, verbatim: 17px ring, 1.5px stroke -->
+        <svg viewBox="0 0 17 17" width="17" height="17" aria-hidden="true">
+          <circle cx="8.5" cy="8.5" r="7.75" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+        </svg>
+      </button>
+      <button id="mode-search" title="Search mode — typing filters the list (Ctrl+F)" aria-label="Search mode" aria-pressed="false">
+        <svg viewBox="0 0 17 17" width="17" height="17" aria-hidden="true">
+          <circle cx="7.5" cy="7.5" r="5.1" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+          <line x1="11.4" y1="11.4" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line>
+        </svg>
+      </button>
+    </div>
+    <input id="new-item" type="text" placeholder="Add a note…">
   </div>
   <div id="suggest" hidden>
     <div id="suggest-body">
@@ -58,9 +72,6 @@
     <button id="suggest-dismiss" aria-label="Dismiss suggestion">✕</button>
   </div>
   <ul id="list" role="listbox" aria-label="Captured items"></ul>
-  <div id="add-wrap">
-    <input id="add-item" type="text" placeholder="Add a note…">
-  </div>
   <footer id="status">
     <span id="status-left"></span>
     <span id="status-right"></span>

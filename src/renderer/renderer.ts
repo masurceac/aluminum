@@ -9,10 +9,13 @@ const bridge = window.aluminum;
 
 // the summon chord's modifier is Cmd on macOS, Ctrl elsewhere (see main.ts)
 const isMac = navigator.platform.startsWith('Mac');
-// two inputs, two jobs (Copper-style): top searches/filters, bottom adds —
-// search can't create items and the add box can't narrow the list
+// one input, two jobs, explicit mode: the segmented toggle beside it decides
+// whether typing drafts a new item (default) or live-filters the list —
+// so search can never accidentally create an item and vice versa
 const input = document.getElementById('new-item') as HTMLInputElement;
-const addInput = document.getElementById('add-item') as HTMLInputElement;
+const modeAddBtn = document.getElementById('mode-add') as HTMLButtonElement;
+const modeSearchBtn = document.getElementById('mode-search') as HTMLButtonElement;
+let inputMode: 'add' | 'search' = 'add';
 const list = document.getElementById('list') as HTMLUListElement;
 const statusLeft = document.getElementById('status-left') as HTMLSpanElement;
 const statusRight = document.getElementById('status-right') as HTMLSpanElement;
@@ -61,7 +64,8 @@ let expandedId: string | null = null;
  * sunk to the bottom (completion beats pinning), narrowed by the live filter.
  * Every partition keeps store order, which is newest-first. */
 function visibleItems(): Item[] {
-  const q = input.value.trim().toLowerCase();
+  // in add mode the input is a draft, not a filter — the list stays whole
+  const q = inputMode === 'search' ? input.value.trim().toLowerCase() : '';
   const base = q ? items.filter((i) => i.text.toLowerCase().includes(q)) : items;
   const undone = base.filter((i) => !i.done);
   return [
@@ -322,7 +326,8 @@ function cancelEdit(): void {
 
 function renderStatus(): void {
   const vis = visibleItems();
-  const filtering = input.value.trim().length > 0 && document.activeElement === input;
+  const filtering =
+    inputMode === 'search' && input.value.trim().length > 0 && document.activeElement === input;
   clearAllBtn.hidden = items.length === 0;
   if (flashMessage) {
     statusLeft.textContent = flashMessage;
@@ -409,7 +414,7 @@ function sectionOf(item: Item): string {
 function textNodeFor(item: Item): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = 'text';
-  const q = input.value.trim().toLowerCase();
+  const q = inputMode === 'search' ? input.value.trim().toLowerCase() : '';
   if (!q) {
     span.textContent = item.text;
     return span;
@@ -432,7 +437,7 @@ function textNodeFor(item: Item): HTMLSpanElement {
 
 function render(): void {
   const vis = visibleItems();
-  const filtering = input.value.trim().length > 0;
+  const filtering = inputMode === 'search' && input.value.trim().length > 0;
 
   // an in-progress edit must survive re-renders (e.g. the 30s age refresh):
   // carry the live textarea text and caret across the rebuild
@@ -606,7 +611,13 @@ function render(): void {
         }
         render();
       });
-      li.addEventListener('dblclick', () => {
+      li.addEventListener('dblclick', (e) => {
+        // rapid clicks on the row's controls (✕✕ while clearing up, the
+        // checkbox, ⌄) coalesce into a dblclick here — those are never
+        // "take this one". After a delete rebuilds the list, the second
+        // click even lands on the NEXT row's ✕; the same guard catches it.
+        if (e.target instanceof Node && (cb.contains(e.target) || actions.contains(e.target)))
+          return;
         if (editingId === item.id) return;
         // double-click = "take this one": copy it out AND mark it handled
         if (!item.done) fire(api.setDone(item.id, true));
@@ -683,6 +694,16 @@ function summon(): void {
 }
 
 function start(): void {
+  // click-away deselect: a click that lands in the list but not on a row
+  // (group headers, the empty space below the last item) clears the
+  // selection — the mouse counterpart of ArrowUp off the top
+  list.addEventListener('click', (e) => {
+    if (selectedIds.size === 0) return;
+    if (e.target instanceof Element && e.target.closest('li.item')) return;
+    selectSingle(null);
+    render();
+  });
+
   clearAllBtn.addEventListener('click', () => {
     if (items.length === 0) return;
     offerUndo(`All ${items.length} items cleared`);
@@ -699,7 +720,6 @@ function start(): void {
     selectSingle(id);
     scrollToFocus = true;
     input.blur();
-    addInput.blur();
     render();
   });
 
@@ -743,8 +763,33 @@ function start(): void {
     if (e.animationName === 'summon') document.body.classList.remove('summon');
   });
 
-  // the top input is the live filter: every keystroke re-narrows
+  // the segmented toggle decides what the input does; the draft text
+  // survives a switch (type first, decide later), but the filter it may
+  // imply has to be applied/lifted immediately
+  const setMode = (mode: 'add' | 'search'): void => {
+    if (inputMode === mode) return;
+    inputMode = mode;
+    modeAddBtn.setAttribute('aria-pressed', String(mode === 'add'));
+    modeSearchBtn.setAttribute('aria-pressed', String(mode === 'search'));
+    input.placeholder = mode === 'add' ? 'Add a note…' : 'Search…';
+    if (mode === 'search' && input.value.trim()) {
+      // entering search with text = that text becomes the filter now
+      selectSingle(null);
+    }
+    render();
+  };
+  modeAddBtn.addEventListener('click', () => {
+    setMode('add');
+    input.focus();
+  });
+  modeSearchBtn.addEventListener('click', () => {
+    setMode('search');
+    input.focus();
+  });
+
+  // in search mode every keystroke re-narrows; in add mode it's just a draft
   input.addEventListener('input', () => {
+    if (inputMode !== 'search') return;
     selectedIds.clear();
     focusId = null;
     anchorId = null;
@@ -752,11 +797,17 @@ function start(): void {
   });
 
   input.addEventListener('keydown', (e) => {
+    // isComposing: Enter that commits an IME candidate must not add an item.
+    // The input keeps focus so several adds chain naturally.
+    if (e.key === 'Enter' && inputMode === 'add' && !e.isComposing && input.value.trim()) {
+      fire(api.addItem(input.value.trim()));
+      input.value = '';
+    }
     if (e.key === 'Escape' && input.value) {
-      // first Escape clears the filter; the document handler never sees it
+      // first Escape clears the draft/filter; an empty second one hides the overlay
       e.stopPropagation();
       input.value = '';
-      render();
+      if (inputMode === 'search') render();
     }
     if (e.key === 'ArrowDown' && visibleItems().length > 0) {
       selectSingle(visibleItems()[0].id);
@@ -768,26 +819,12 @@ function start(): void {
     }
   });
 
-  // the bottom input adds; it stays focused so several adds chain naturally
-  addInput.addEventListener('keydown', (e) => {
-    // isComposing: Enter that commits an IME candidate must not add an item
-    if (e.key === 'Enter' && !e.isComposing && addInput.value.trim()) {
-      fire(api.addItem(addInput.value.trim()));
-      addInput.value = '';
-    }
-    if (e.key === 'Escape' && addInput.value) {
-      // first Escape clears the draft; an empty second one hides the overlay
-      e.stopPropagation();
-      addInput.value = '';
-    }
-  });
-
   // paste is capture too: multi-line text pasted anywhere becomes an item
   // verbatim (an <input> would silently flatten the newlines)
   document.addEventListener('paste', (e) => {
     const text = e.clipboardData?.getData('text/plain') ?? '';
     if (!text.trim()) return;
-    const inInput = document.activeElement === input || document.activeElement === addInput;
+    const inInput = document.activeElement === input;
     if (inInput && !text.includes('\n')) return; // ordinary single-line paste
     if (!inInput && document.activeElement !== document.body) return;
     e.preventDefault();
@@ -796,21 +833,22 @@ function start(): void {
   });
 
   document.addEventListener('keydown', (e) => {
-    // Nothing is focused on summon; Tab walks search → add → search (Shift
-    // reverses). Handled here so Tab never wanders into titlebar buttons.
-    // The inline editor's own keydown stops propagation, so it is unaffected.
+    // Nothing is focused on summon; Tab toggles between the input and
+    // "nothing focused" (which is what arms the list shortcuts). Handled
+    // here so Tab never wanders into titlebar buttons. The inline editor's
+    // own keydown stops propagation, so it is unaffected.
     if (e.key === 'Tab') {
       const ae = document.activeElement;
-      if (ae === input) {
-        if (e.shiftKey) input.blur(); // back to "nothing focused"
-        else addInput.focus();
-      } else if (ae === addInput) {
-        input.focus(); // cycle both directions between the two fields
-      } else if (ae === document.body) {
-        (e.shiftKey ? addInput : input).focus();
-      } else {
-        return; // some other control legitimately holds focus — native Tab
-      }
+      if (ae === input) input.blur();
+      else if (ae === document.body) input.focus();
+      else return; // some other control legitimately holds focus — native Tab
+      e.preventDefault();
+      return;
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+      // the universal "find" gesture: flip to search mode and start typing
+      setMode('search');
+      input.focus();
       e.preventDefault();
       return;
     }
@@ -841,7 +879,7 @@ function start(): void {
       e.preventDefault();
       return;
     }
-    if (document.activeElement === input || document.activeElement === addInput) return;
+    if (document.activeElement === input) return;
     // a focused checkbox, button, or editor owns its own key handling: acting
     // here would suppress the native behavior and mutate a different row
     if (document.activeElement !== document.body) return;
@@ -906,7 +944,7 @@ function start(): void {
     selectSingle(null);
     editingId = null;
     input.value = '';
-    addInput.value = '';
+    setMode('add'); // each summon starts in the default capture-and-add stance
     // a fresh summon starts with nothing focused; Tab reaches the fields
     (document.activeElement as HTMLElement | null)?.blur?.();
     closeMenu();

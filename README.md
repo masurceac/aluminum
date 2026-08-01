@@ -63,16 +63,19 @@ clipboard: if the clipboard holds text that isn't in the list yet, the overlay
 offers it in a small **"From clipboard" card** — one click adds it, ✕ (or just
 ignoring it) discards it.
 
-The overlay has two fields, Copper-style: **Search** at the top (typing
-live-filters the list, and can never accidentally create an item) and **Add a
-note** at the bottom (`Enter` adds; the field keeps focus so several adds
-chain). The overlay opens with **nothing focused** — the list shortcuts below
-work immediately, and `Tab` reaches the fields.
+The overlay has one input with a two-icon mode toggle beside it: **○ Add**
+(the same circle as the row done-toggles; the default — `Enter` adds the note
+and keeps focus so several adds chain) and **🔍 Search** (typing live-filters
+the list; `Enter` never creates an item). The typed text survives a mode switch, and every summon starts back
+in Add mode. `Ctrl+F` jumps straight to search. The overlay opens with
+**nothing focused** — the list shortcuts below work immediately, and `Tab`
+reaches the input.
 
 | Key | Action |
 |---|---|
-| `Tab` | focus the search field; `Tab` again — the add field (`Shift+Tab` walks back out) |
-| `ArrowDown` / `ArrowUp` | move the selection (from the search field, `ArrowDown` enters the list; `ArrowUp` off the top clears the selection) |
+| `Tab` | focus the input; `Tab` again releases it (list shortcuts re-arm) |
+| `Ctrl+F` / `Cmd+F` | switch to search mode and focus the input |
+| `ArrowDown` / `ArrowUp` | move the selection (from the input, `ArrowDown` enters the list; `ArrowUp` off the top clears the selection) |
 | `ArrowRight` / `ArrowLeft` | expand / collapse the selected row — rows are clamped to 2 lines and never grow on their own; the footer shows "→ more" when there is hidden text (moving the selection collapses again) |
 | `Shift+ArrowDown/Up` | extend the selection over multiple items |
 | `Space` | toggle done on the selected item(s) |
@@ -87,8 +90,10 @@ The mouse works as well: click to select (`Ctrl+click` toggles membership,
 `Shift+click` ranges), click the round check to toggle done (this also selects the row —
 done items get a strikethrough), hover a row to reveal its copy and
 ✕ buttons (plus a ⌄ chevron on rows with hidden text — click to
-expand/collapse), double-click a row to copy it out **and mark it done**, or **drag a row (or a
-multi-selection) straight into another app** as plain text. Right-click opens
+expand/collapse), double-click a row to copy it out **and mark it done**
+(rapid clicks on the row's buttons never count as that double-click), or **drag a row (or a
+multi-selection) straight into another app** as plain text. Clicking an empty
+spot in the list (or a group header) clears the selection. Right-click opens
 a context menu — Copy / Copy as list, Edit, Mark as done, Pin, Merge
 (multi-selection), Clear done, Delete. Clicking away (blur) or clicking the
 tray / menu-bar icon also hides the overlay; the tray icon's context menu has

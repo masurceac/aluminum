@@ -970,6 +970,27 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   keydown (before the activeElement guards): body→search→add→search cycle, Shift reverses,
 >   Shift+Tab from search blurs back to nothing; any other focused control keeps native Tab.
 >   Paste-to-add and the document-handler guards now recognize both inputs.
+>   **Reverted to ONE input + mode toggle (2026-08-01, user request):** two fields read
+>   as clutter. `#add-item`/`#add-wrap` are gone; the single `#new-item` is fronted by a
+>   segmented `#mode-toggle` (`#mode-add` = the row done-toggle circle verbatim (17px
+>   ring, 1.5px stroke, no plus — user request) / `#mode-search` 🔍, `aria-pressed`, same
+>   soft-field material, pressed pill = `--glass-solid` + accent). `inputMode: 'add' |
+>   'search'` ('add' is default and each summon resets to it via `setMode` in `onShown`).
+>   Add mode: typing is a draft (list stays whole — `visibleItems()`/`textNodeFor()`/both
+>   `filtering` flags gate the filter on `inputMode === 'search'`), Enter adds and keeps
+>   focus for chained adds. Search mode: every keystroke re-narrows, Enter is inert (the
+>   junk-item class stays dead). The draft text survives a mode switch — type first,
+>   decide later. Ctrl+F from anywhere = search mode + focus. Tab now just toggles
+>   input ⇄ nothing-focused. Escape: clears text first, then hides.
+> - **Row-control dblclick guard (2026-08-01):** rapid clicks on ✕ during cleanup
+>   coalesced into a row dblclick = copyOut + hide + done — infuriating mid-sweep. The
+>   `dblclick` handler now bails when the event target sits in the checkbox or `.actions`
+>   (same guard as click). Covers the rebuild case too: after a delete re-renders, the
+>   second click lands on the NEXT row's ✕ and that row's own guard catches it.
+> - **Click-away deselect (2026-08-01):** a click inside `#list` that lands on no
+>   `li.item` (group headers, the empty space below the last row) clears the selection —
+>   the mouse counterpart of ArrowUp-off-the-top. Ctrl+click stays the explicit
+>   single-row deselect.
 > - **Source glyph dropped:** rows no longer show ⇧/↵ before the age (user request — read
 >   as noise); only the ✦ pinned marker remains in `.meta`.
 > - **Themes (2026-07-31):** titlebar swatch button opens a `#themes` popover with four

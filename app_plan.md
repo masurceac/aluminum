@@ -951,6 +951,11 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   the store push lands.
 > - **Click-again deselects:** a plain click on the sole selected row clears the
 >   selection (focus returns to the input via `render()`); Ctrl/Shift clicks unchanged.
+>   **Reverted (2026-08-01):** re-clicking a selected row now keeps it selected — the
+>   accidental deselect annoyed more than the toggle helped; Ctrl+click is the explicit
+>   deselect. Same date: **dblclick = copyOut + setDone(true)** (was copyOut only) — a
+>   double-click means "take this one", so the item is also marked handled and sinks to
+>   the Done group.
 > - **Source glyph dropped:** rows no longer show ⇧/↵ before the age (user request — read
 >   as noise); only the ✦ pinned marker remains in `.meta`.
 > - **Themes (2026-07-31):** titlebar swatch button opens a `#themes` popover with four

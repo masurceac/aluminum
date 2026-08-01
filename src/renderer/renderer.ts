@@ -590,16 +590,18 @@ function render(): void {
           anchorId = item.id;
         } else if (e.shiftKey) {
           selectRange(item.id);
-        } else if (selectedIds.size === 1 && selectedIds.has(item.id)) {
-          // clicking the sole selected row again deselects it
-          selectSingle(null);
         } else {
+          // re-clicking a selected row keeps it selected (click ≠ toggle);
+          // Ctrl+click is the explicit deselect
           selectSingle(item.id);
         }
         render();
       });
       li.addEventListener('dblclick', () => {
-        if (editingId !== item.id) fire(api.copyOut(item.text));
+        if (editingId === item.id) return;
+        // double-click = "take this one": copy it out AND mark it handled
+        if (!item.done) fire(api.setDone(item.id, true));
+        fire(api.copyOut(item.text));
       });
       li.addEventListener('contextmenu', (e) => {
         e.preventDefault();

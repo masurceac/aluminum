@@ -76,11 +76,11 @@ In the overlay:
 | `Delete` or `Backspace` | remove the selected item(s) — an **Undo** toast appears for 5 s (`Ctrl+Z` works too) |
 | `Escape` | clear the filter if one is typed, otherwise hide the overlay |
 
-The mouse works as well: click to select — click again to deselect
-(`Ctrl+click` toggles, `Shift+click` ranges), click the round check to toggle done (this also selects the row —
+The mouse works as well: click to select (`Ctrl+click` toggles membership,
+`Shift+click` ranges), click the round check to toggle done (this also selects the row —
 done items get a strikethrough), hover a row to reveal its copy and
 ✕ buttons (plus a ⌄ chevron on rows with hidden text — click to
-expand/collapse), double-click a row to copy it out, or **drag a row (or a
+expand/collapse), double-click a row to copy it out **and mark it done**, or **drag a row (or a
 multi-selection) straight into another app** as plain text. Right-click opens
 a context menu — Copy / Copy as list, Edit, Mark as done, Pin, Merge
 (multi-selection), Clear done, Delete. Clicking away (blur) or clicking the

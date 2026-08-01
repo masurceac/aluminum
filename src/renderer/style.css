@@ -261,7 +261,8 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
 }
 
 /* ─── Input — soft field, accent focus ring ─── */
-#input-wrap {
+#input-wrap,
+#add-wrap {
   padding: 0 8px 8px;
   flex: none;
   /* maximized: cap the measure so long captures stay readable */
@@ -269,7 +270,9 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   max-width: 752px;
   margin-inline: auto;
 }
-#new-item {
+#add-wrap { padding-top: 8px; }
+#new-item,
+#add-item {
   width: 100%;
   height: 36px;
   padding: 0 11px;
@@ -283,14 +286,17 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   caret-color: var(--accent);
   transition: box-shadow 130ms ease;
 }
-#new-item:focus {
+#new-item:focus,
+#add-item:focus {
   outline: none;
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 85%, transparent),
     0 0 0 3.5px color-mix(in srgb, var(--accent) 18%, transparent);
 }
-#new-item::placeholder { color: var(--mfg); }
-#new-item:disabled { opacity: 0.45; }
+#new-item::placeholder,
+#add-item::placeholder { color: var(--mfg); }
+#new-item:disabled,
+#add-item:disabled { opacity: 0.45; }
 
 /* ─── Clipboard suggestion — an offer, not an insertion ─── */
 #suggest {

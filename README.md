@@ -60,12 +60,16 @@ clipboard: if the clipboard holds text that isn't in the list yet, the overlay
 offers it in a small **"From clipboard" card** — one click adds it, ✕ (or just
 ignoring it) discards it.
 
-In the overlay:
+The overlay has two fields, Copper-style: **Search** at the top (typing
+live-filters the list, and can never accidentally create an item) and **Add a
+note** at the bottom (`Enter` adds; the field keeps focus so several adds
+chain). The overlay opens with **nothing focused** — the list shortcuts below
+work immediately, and `Tab` reaches the fields.
 
 | Key | Action |
 |---|---|
-| type + `Enter` | add a manual item — typing also **live-filters** the list |
-| `ArrowDown` / `ArrowUp` | move the selection (from the input, `ArrowDown` enters the list; `ArrowUp` off the top returns to the input) |
+| `Tab` | focus the search field; `Tab` again — the add field (`Shift+Tab` walks back out) |
+| `ArrowDown` / `ArrowUp` | move the selection (from the search field, `ArrowDown` enters the list; `ArrowUp` off the top clears the selection) |
 | `ArrowRight` / `ArrowLeft` | expand / collapse the selected row — rows are clamped to 2 lines and never grow on their own; the footer shows "→ more" when there is hidden text (moving the selection collapses again) |
 | `Shift+ArrowDown/Up` | extend the selection over multiple items |
 | `Space` | toggle done on the selected item(s) |
@@ -74,7 +78,7 @@ In the overlay:
 | `Ctrl+V` / `Cmd+V` | add the clipboard as a new item — multi-line text is kept verbatim |
 | `F2` | edit the selected item in place (`Enter` saves, `Shift+Enter` newline, `Escape` cancels) |
 | `Delete` or `Backspace` | remove the selected item(s) — an **Undo** toast appears for 5 s (`Ctrl+Z` works too) |
-| `Escape` | clear the filter if one is typed, otherwise hide the overlay |
+| `Escape` | clear the focused field's text if any, otherwise hide the overlay |
 
 The mouse works as well: click to select (`Ctrl+click` toggles membership,
 `Shift+click` ranges), click the round check to toggle done (this also selects the row —

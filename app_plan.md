@@ -960,6 +960,16 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   titlebar button — the eye expects "dismiss" there, and the rightmost slot being
 >   Maximize read as non-intuitive. It fires the same `api.hide()` as Minimize (tray app:
 >   titlebar never quits; Quit stays in the tray menu).
+> - **Split inputs, Copper-style (2026-08-01):** the single dual-role `#new-item` (filter +
+>   Enter-adds) became two fields — `#new-item` on top is Search (filter only; its Enter-add
+>   branch is gone, killing the filter-then-reflex-Enter junk-item class), and `#add-item`
+>   above the footer adds (Enter adds and keeps focus for chained adds; Escape clears the
+>   draft, empty Escape hides). **Summon focuses NOTHING** (user request): `render()` and
+>   `onShown` no longer call `input.focus()` — `<body>` holds focus, which is exactly what
+>   arms the document-level list shortcuts. Tab is intercepted at the top of the document
+>   keydown (before the activeElement guards): body→search→add→search cycle, Shift reverses,
+>   Shift+Tab from search blurs back to nothing; any other focused control keeps native Tab.
+>   Paste-to-add and the document-handler guards now recognize both inputs.
 > - **Source glyph dropped:** rows no longer show ⇧/↵ before the age (user request — read
 >   as noise); only the ✦ pinned marker remains in `.meta`.
 > - **Themes (2026-07-31):** titlebar swatch button opens a `#themes` popover with four

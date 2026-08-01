@@ -6,7 +6,10 @@ declare global {
 }
 
 const bridge = window.aluminum;
+// two inputs, two jobs (Copper-style): top searches/filters, bottom adds —
+// search can't create items and the add box can't narrow the list
 const input = document.getElementById('new-item') as HTMLInputElement;
+const addInput = document.getElementById('add-item') as HTMLInputElement;
 const list = document.getElementById('list') as HTMLUListElement;
 const statusLeft = document.getElementById('status-left') as HTMLSpanElement;
 const statusRight = document.getElementById('status-right') as HTMLSpanElement;
@@ -345,12 +348,12 @@ function renderStatus(): void {
   }
   if (filtering) {
     statusLeft.textContent = `${vis.length} of ${items.length}`;
-    statusRight.textContent = '↵ add · esc clear';
+    statusRight.textContent = 'esc clear';
     return;
   }
   if (items.length === 0) {
     statusLeft.textContent = '0 items';
-    statusRight.textContent = '↵ add';
+    statusRight.textContent = '⇥ add';
     return;
   }
   const done = items.filter((i) => i.done).length;
@@ -640,10 +643,9 @@ function render(): void {
   enterIds = new Set(); // enter animation plays exactly once
 
   renderStatus();
-
-  // no selection means the list has no keyboard claim — clicking a row control
-  // otherwise strands focus on <body> and every shortcut goes dead
-  if (focusId === null && editingId === null && menu.hidden) input.focus();
+  // deliberately no auto-focus: the summoned overlay starts with NOTHING
+  // focused (user request) — Tab reaches search, then the add box; <body>
+  // holding focus is what arms the list shortcuts
 }
 
 function setItems(next: Item[]): void {
@@ -691,6 +693,7 @@ function start(): void {
     selectSingle(id);
     scrollToFocus = true;
     input.blur();
+    addInput.blur();
     render();
   });
 
@@ -734,7 +737,7 @@ function start(): void {
     if (e.animationName === 'summon') document.body.classList.remove('summon');
   });
 
-  // the input is both "add" and live filter: every keystroke re-narrows
+  // the top input is the live filter: every keystroke re-narrows
   input.addEventListener('input', () => {
     selectedIds.clear();
     focusId = null;
@@ -743,11 +746,6 @@ function start(): void {
   });
 
   input.addEventListener('keydown', (e) => {
-    // isComposing: Enter that commits an IME candidate must not add an item
-    if (e.key === 'Enter' && !e.isComposing && input.value.trim()) {
-      fire(api.addItem(input.value.trim()));
-      input.value = '';
-    }
     if (e.key === 'Escape' && input.value) {
       // first Escape clears the filter; the document handler never sees it
       e.stopPropagation();
@@ -764,12 +762,26 @@ function start(): void {
     }
   });
 
+  // the bottom input adds; it stays focused so several adds chain naturally
+  addInput.addEventListener('keydown', (e) => {
+    // isComposing: Enter that commits an IME candidate must not add an item
+    if (e.key === 'Enter' && !e.isComposing && addInput.value.trim()) {
+      fire(api.addItem(addInput.value.trim()));
+      addInput.value = '';
+    }
+    if (e.key === 'Escape' && addInput.value) {
+      // first Escape clears the draft; an empty second one hides the overlay
+      e.stopPropagation();
+      addInput.value = '';
+    }
+  });
+
   // paste is capture too: multi-line text pasted anywhere becomes an item
   // verbatim (an <input> would silently flatten the newlines)
   document.addEventListener('paste', (e) => {
     const text = e.clipboardData?.getData('text/plain') ?? '';
     if (!text.trim()) return;
-    const inInput = document.activeElement === input;
+    const inInput = document.activeElement === input || document.activeElement === addInput;
     if (inInput && !text.includes('\n')) return; // ordinary single-line paste
     if (!inInput && document.activeElement !== document.body) return;
     e.preventDefault();
@@ -778,6 +790,24 @@ function start(): void {
   });
 
   document.addEventListener('keydown', (e) => {
+    // Nothing is focused on summon; Tab walks search → add → search (Shift
+    // reverses). Handled here so Tab never wanders into titlebar buttons.
+    // The inline editor's own keydown stops propagation, so it is unaffected.
+    if (e.key === 'Tab') {
+      const ae = document.activeElement;
+      if (ae === input) {
+        if (e.shiftKey) input.blur(); // back to "nothing focused"
+        else addInput.focus();
+      } else if (ae === addInput) {
+        input.focus(); // cycle both directions between the two fields
+      } else if (ae === document.body) {
+        (e.shiftKey ? addInput : input).focus();
+      } else {
+        return; // some other control legitimately holds focus — native Tab
+      }
+      e.preventDefault();
+      return;
+    }
     if (e.key === 'Escape') {
       if (!themesPop.hidden) {
         closeThemes();
@@ -805,7 +835,7 @@ function start(): void {
       e.preventDefault();
       return;
     }
-    if (document.activeElement === input) return;
+    if (document.activeElement === input || document.activeElement === addInput) return;
     // a focused checkbox, button, or editor owns its own key handling: acting
     // here would suppress the native behavior and mutate a different row
     if (document.activeElement !== document.body) return;
@@ -815,8 +845,8 @@ function start(): void {
       const dir = e.key === 'ArrowDown' ? 1 : -1;
       const i = visibleIndexOf(focusId);
       if (dir === -1 && i <= 0) {
-        selectSingle(null);
-        render(); // render() returns focus to the input when nothing is selected
+        selectSingle(null); // off the top: back to no selection, nothing focused
+        render();
       } else {
         const next = vis[Math.max(0, Math.min(i + dir, vis.length - 1))];
         if (next) {
@@ -870,12 +900,15 @@ function start(): void {
     selectSingle(null);
     editingId = null;
     input.value = '';
+    addInput.value = '';
+    // a fresh summon starts with nothing focused; Tab reaches the fields
+    (document.activeElement as HTMLElement | null)?.blur?.();
     closeMenu();
     closeThemes();
     dismissToast();
     hideSuggestion(); // each summon brings its own (the suggest event follows)
     summon();
-    render(); // render() refocuses the input when nothing is selected
+    render();
   });
 
   // ages drift while the overlay sits open; refresh them quietly

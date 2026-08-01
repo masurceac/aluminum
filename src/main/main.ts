@@ -350,27 +350,31 @@ function setupGlobalHook(): void {
     );
     return;
   }
+  // the chord modifier: Cmd on macOS, Ctrl elsewhere
+  const chordCodes: number[] =
+    process.platform === 'darwin'
+      ? [UiohookKey.Meta, UiohookKey.MetaRight]
+      : [UiohookKey.Ctrl, UiohookKey.CtrlRight];
   const detector = new DoubleTapDetector({
     codes: [UiohookKey.Shift, UiohookKey.ShiftRight],
-    // held Ctrl must not break the tap sequence: Ctrl+Shift,Shift IS the
-    // gesture (the Ctrl chord keeps typing-shift double-taps from summoning)
-    ignoreCodes: [UiohookKey.Ctrl, UiohookKey.CtrlRight],
+    // the held modifier must not break the tap sequence: Mod+Shift,Shift IS the
+    // gesture (the chord keeps typing-shift double-taps from summoning)
+    ignoreCodes: chordCodes,
     windowMs: DOUBLE_TAP_MS,
   });
-  // Ctrl is tracked from raw keycodes because the event's own ctrlKey flag is
-  // unreliable (observed always-false from uiohook-napi on Windows)
-  const ctrlHeld = new Set<number>();
-  const isCtrl = (code: number): boolean =>
-    code === UiohookKey.Ctrl || code === UiohookKey.CtrlRight;
+  // the modifier is tracked from raw keycodes because the event's own modifier
+  // flags are unreliable (observed always-false from uiohook-napi on Windows)
+  const modHeld = new Set<number>();
+  const isChordMod = (code: number): boolean => chordCodes.includes(code);
   // the listener is the error boundary: a throw here would unwind into the
   // N-API threadsafe callback while the hook keeps reporting "armed"
   uIOhook.on('keydown', (e) => {
     try {
-      if (isCtrl(e.keycode)) ctrlHeld.add(e.keycode);
+      if (isChordMod(e.keycode)) modHeld.add(e.keycode);
       if (detector.keydown(e.keycode)) {
         // a bare double-Shift is too easy to hit while typing — only the
-        // chorded Ctrl+Shift,Shift acts
-        if (ctrlHeld.size > 0) {
+        // chorded Mod+Shift,Shift acts
+        if (modHeld.size > 0) {
           void onDoubleShift().catch((err) => console.error('double-shift failed', err));
         }
       }
@@ -379,7 +383,7 @@ function setupGlobalHook(): void {
     }
   });
   uIOhook.on('keyup', (e) => {
-    ctrlHeld.delete(e.keycode);
+    modHeld.delete(e.keycode);
     detector.keyup(e.keycode);
   });
   try {
@@ -393,7 +397,8 @@ function setupGlobalHook(): void {
 
 let capturing = false;
 
-/** Ctrl+Shift,Shift: capture the current selection (if any), then summon. */
+/** Mod+Shift,Shift (Cmd on macOS, Ctrl elsewhere): capture the current
+ * selection (if any), then summon. */
 async function onDoubleShift(): Promise<void> {
   // if the overlay itself is focused, the gesture just hides it — this must
   // work even while a capture is still in flight

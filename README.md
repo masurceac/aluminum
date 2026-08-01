@@ -1,7 +1,7 @@
 # Aluminum
 
 Copper-style quick-capture list for Windows and macOS. A tray / menu-bar app
-with an always-on-top overlay: hold Ctrl and double-tap Shift anywhere to
+with an always-on-top overlay: hold Ctrl (Cmd on macOS) and double-tap Shift anywhere to
 grab the current text selection into a hybrid to-do / clipboard list, and
 copy items back out with one key. Local build — no signing, no auto-update.
 
@@ -51,9 +51,9 @@ the new path.
 
 ## Use
 
-Hold **Ctrl** and double-tap **Shift** in any app: Aluminum captures the
-current text selection (if there is one) as a new item and shows the overlay
-near the cursor. (The Ctrl chord is deliberate — a bare double-Shift is too
+Hold **Ctrl** (**Cmd** on macOS) and double-tap **Shift** in any app: Aluminum
+captures the current text selection (if there is one) as a new item and shows
+the overlay near the cursor. (The modifier chord is deliberate — a bare double-Shift is too
 easy to hit while typing.) The captured item arrives already selected, so
 `Enter` immediately copies it back out. If the overlay is already open **and
 focused**, the same gesture hides it instead.

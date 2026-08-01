@@ -6,6 +6,9 @@ declare global {
 }
 
 const bridge = window.aluminum;
+
+// the summon chord's modifier is Cmd on macOS, Ctrl elsewhere (see main.ts)
+const isMac = navigator.platform.startsWith('Mac');
 // two inputs, two jobs (Copper-style): top searches/filters, bottom adds —
 // search can't create items and the add box can't narrow the list
 const input = document.getElementById('new-item') as HTMLInputElement;
@@ -370,7 +373,7 @@ function emptyRow(text: string, keycaps: boolean): HTMLLIElement {
   if (keycaps) {
     const keys = document.createElement('div');
     keys.className = 'keys';
-    for (const label of ['Ctrl', '⇧ Shift', '⇧ Shift']) {
+    for (const label of [isMac ? '⌘ Cmd' : 'Ctrl', '⇧ Shift', '⇧ Shift']) {
       const key = document.createElement('span');
       key.className = 'key';
       key.textContent = label;
@@ -443,7 +446,10 @@ function render(): void {
 
   if (items.length === 0) {
     list.appendChild(
-      emptyRow('Hold Ctrl and double-tap Shift in any app to capture selected text', true),
+      emptyRow(
+        `Hold ${isMac ? 'Cmd' : 'Ctrl'} and double-tap Shift in any app to capture selected text`,
+        true,
+      ),
     );
   } else if (vis.length === 0) {
     list.appendChild(emptyRow(`No matches for “${input.value.trim()}”`, false));

@@ -352,8 +352,8 @@ function setupGlobalHook(): void {
   }
   const detector = new DoubleTapDetector({
     codes: [UiohookKey.Shift, UiohookKey.ShiftRight],
-    // held Ctrl must not break the tap sequence: Ctrl+Shift,Shift is the
-    // "open without capturing" variant of the gesture
+    // held Ctrl must not break the tap sequence: Ctrl+Shift,Shift IS the
+    // gesture (the Ctrl chord keeps typing-shift double-taps from summoning)
     ignoreCodes: [UiohookKey.Ctrl, UiohookKey.CtrlRight],
     windowMs: DOUBLE_TAP_MS,
   });
@@ -368,9 +368,11 @@ function setupGlobalHook(): void {
     try {
       if (isCtrl(e.keycode)) ctrlHeld.add(e.keycode);
       if (detector.keydown(e.keycode)) {
-        void onDoubleShift(ctrlHeld.size > 0).catch((err) =>
-          console.error('double-shift failed', err),
-        );
+        // a bare double-Shift is too easy to hit while typing — only the
+        // chorded Ctrl+Shift,Shift acts
+        if (ctrlHeld.size > 0) {
+          void onDoubleShift().catch((err) => console.error('double-shift failed', err));
+        }
       }
     } catch (err) {
       console.error('double-shift handler failed', err);
@@ -391,17 +393,12 @@ function setupGlobalHook(): void {
 
 let capturing = false;
 
-/** Ctrl+Shift,Shift (`skipCapture`) opens the overlay without touching the
- * selection or clipboard; plain Shift,Shift captures first. */
-async function onDoubleShift(skipCapture = false): Promise<void> {
-  // if the overlay itself is focused, double-shift just hides it — this must
+/** Ctrl+Shift,Shift: capture the current selection (if any), then summon. */
+async function onDoubleShift(): Promise<void> {
+  // if the overlay itself is focused, the gesture just hides it — this must
   // work even while a capture is still in flight
   if (win?.isVisible() && win.isFocused()) {
     win.hide();
-    return;
-  }
-  if (skipCapture) {
-    showOverlay();
     return;
   }
   if (capturing) return;

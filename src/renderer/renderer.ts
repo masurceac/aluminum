@@ -367,10 +367,10 @@ function emptyRow(text: string, keycaps: boolean): HTMLLIElement {
   if (keycaps) {
     const keys = document.createElement('div');
     keys.className = 'keys';
-    for (let k = 0; k < 2; k++) {
+    for (const label of ['Ctrl', '⇧ Shift', '⇧ Shift']) {
       const key = document.createElement('span');
       key.className = 'key';
-      key.textContent = '⇧ Shift';
+      key.textContent = label;
       keys.appendChild(key);
     }
     li.appendChild(keys);
@@ -439,7 +439,9 @@ function render(): void {
   list.innerHTML = '';
 
   if (items.length === 0) {
-    list.appendChild(emptyRow('Double-tap Shift in any app to capture selected text', true));
+    list.appendChild(
+      emptyRow('Hold Ctrl and double-tap Shift in any app to capture selected text', true),
+    );
   } else if (vis.length === 0) {
     list.appendChild(emptyRow(`No matches for “${input.value.trim()}”`, false));
   } else {

@@ -1290,7 +1290,13 @@ function onDoubleShift(): void {
 }
 ```
 
-> **As-built (2026-07-30, Ctrl variant):** the detector also takes `ignoreCodes: [UiohookKey.Ctrl, UiohookKey.CtrlRight]` — codes that neither taint a tap nor kill a pending one (a held modifier auto-repeats keydowns between the taps, which would otherwise reset the sequence). **Ctrl+Shift,Shift opens the overlay WITHOUT capturing** (`onDoubleShift(skipCapture)` early-returns to `showOverlay()`); plain Shift,Shift captures first as before. Ctrl held-state is tracked manually from raw keycodes in the keydown/keyup listeners — **uiohook-napi's `e.ctrlKey` mask was observed always-false on Windows; do not use the event's modifier flags.** Detector behavior covered in `tests/double-tap.test.ts` (ignored-modifier cases); Ctrl+Shift+A chords still taint via the non-ignored `A` keydown.
+> **As-built (2026-07-30, Ctrl variant):** the detector also takes `ignoreCodes: [UiohookKey.Ctrl, UiohookKey.CtrlRight]` — codes that neither taint a tap nor kill a pending one (a held modifier auto-repeats keydowns between the taps, which would otherwise reset the sequence). Ctrl held-state is tracked manually from raw keycodes in the keydown/keyup listeners — **uiohook-napi's `e.ctrlKey` mask was observed always-false on Windows; do not use the event's modifier flags.** Detector behavior covered in `tests/double-tap.test.ts` (ignored-modifier cases); Ctrl+Shift+A chords still taint via the non-ignored `A` keydown.
+>
+> **Superseded (2026-08-01):** plain Shift,Shift no longer triggers anything — accidental
+> summons while typing. **Ctrl+Shift,Shift is now the ONLY gesture and does the full
+> capture-then-show flow** (the old `skipCapture` no-capture variant is gone;
+> `onDoubleShift()` lost its parameter, and the hook listener only calls it when
+> `ctrlHeld.size > 0`).
 
 Call `setupGlobalHook()` inside `app.whenReady().then(...)` after `setupTray()`, and stop the hook on quit:
 

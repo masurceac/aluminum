@@ -1,9 +1,9 @@
 # Aluminum
 
 Copper-style quick-capture list for Windows and macOS. A tray / menu-bar app
-with an always-on-top overlay: double-tap Shift anywhere to grab the current
-text selection into a hybrid to-do / clipboard list, and copy items back out
-with one key. Local build — no signing, no auto-update.
+with an always-on-top overlay: hold Ctrl and double-tap Shift anywhere to
+grab the current text selection into a hybrid to-do / clipboard list, and
+copy items back out with one key. Local build — no signing, no auto-update.
 
 ## Setup
 
@@ -22,8 +22,8 @@ Security → Accessibility, then restart the app. In dev, macOS attributes the
 request to the process that launched Electron, so grant it to your terminal
 app. Without it the global Shift hook stays silent and capture returns nothing.
 
-The app runs fine without a built helper: double-tap Shift then just toggles
-the overlay, and a warning is logged at startup.
+The app runs fine without a built helper: the gesture then just toggles the
+overlay, and a warning is logged at startup.
 
 ## Install (standalone build)
 
@@ -48,19 +48,17 @@ the new path.
 
 ## Use
 
-Double-tap Shift in any app: Aluminum captures the current text selection (if
-there is one) as a new item and shows the overlay near the cursor. The
-captured item arrives already selected, so `Enter` immediately copies it
-back out. If the
-overlay is already open **and focused**, double-tap Shift hides it instead.
+Hold **Ctrl** and double-tap **Shift** in any app: Aluminum captures the
+current text selection (if there is one) as a new item and shows the overlay
+near the cursor. (The Ctrl chord is deliberate — a bare double-Shift is too
+easy to hit while typing.) The captured item arrives already selected, so
+`Enter` immediately copies it back out. If the overlay is already open **and
+focused**, the same gesture hides it instead.
 
 With no selection to capture, Aluminum does not silently insert your
 clipboard: if the clipboard holds text that isn't in the list yet, the overlay
 offers it in a small **"From clipboard" card** — one click adds it, ✕ (or just
 ignoring it) discards it.
-
-Hold **Ctrl** while double-tapping Shift to open the overlay **without
-capturing anything** — no selection read, no clipboard fallback.
 
 In the overlay:
 

@@ -93,8 +93,9 @@ top instead of duplicating it. Completed items sink to a **Done** group at
 the bottom (even pinned ones); unchecking an item floats it back into place. Window size is remembered across launches.
 
 The window itself is a frosted-glass panel: drag it by the titlebar, resize it
-from any edge, and use the titlebar buttons to minimize (hide to tray) or
-maximize/restore. Rows show their age (and ✦ when pinned). The titlebar's
+from any edge, and use the titlebar buttons to minimize, maximize/restore,
+or close — minimize and close both hide to the tray (a tray app never quits
+from the titlebar; Quit lives in the tray menu). Rows show their age (and ✦ when pinned). The titlebar's
 colored dot opens the **theme popover**: four accent palettes — Copper
 (default), Steel, Brass, Patina — plus an Auto / Light / Dark appearance
 switch (Auto follows the system). Both choices persist across restarts.

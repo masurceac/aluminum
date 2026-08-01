@@ -956,6 +956,10 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   deselect. Same date: **dblclick = copyOut + setDone(true)** (was copyOut only) — a
 >   double-click means "take this one", so the item is also marked handled and sinks to
 >   the Done group.
+> - **Close button (2026-08-01):** `#win-close` (CSS-drawn ✕, red hover) added as the LAST
+>   titlebar button — the eye expects "dismiss" there, and the rightmost slot being
+>   Maximize read as non-intuitive. It fires the same `api.hide()` as Minimize (tray app:
+>   titlebar never quits; Quit stays in the tray menu).
 > - **Source glyph dropped:** rows no longer show ⇧/↵ before the age (user request — read
 >   as noise); only the ✦ pinned marker remains in `.meta`.
 > - **Themes (2026-07-31):** titlebar swatch button opens a `#themes` popover with four

@@ -721,6 +721,9 @@ function start(): void {
     flashStatus(dockedState ? 'Pinned — stays open' : 'Overlay mode');
   });
   document.getElementById('win-min')?.addEventListener('click', () => fire(api.hide()));
+  // "close" sits last, where the eye expects it — a tray app never quits from
+  // the titlebar, so it hides exactly like minimize (quit lives in the tray menu)
+  document.getElementById('win-close')?.addEventListener('click', () => fire(api.hide()));
   maxBtn.addEventListener('click', () => fire(api.toggleMaximize()));
   api.onMaximizedChanged((maximized) => {
     maxBtn.classList.toggle('maximized', maximized);

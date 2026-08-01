@@ -221,6 +221,28 @@ body.summon { animation: summon 230ms cubic-bezier(0.18, 0.92, 0.28, 1.02); }
   border: 1.5px solid var(--mfg);
   border-radius: 3px;
 }
+/* close = hide to tray, same as minimize; red hover follows OS convention */
+#win-close span {
+  position: relative;
+  width: 10px;
+  height: 10px;
+}
+#win-close span::before,
+#win-close span::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4.25px;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--mfg);
+}
+#win-close span::before { transform: rotate(45deg); }
+#win-close span::after { transform: rotate(-45deg); }
+#win-close:hover { background: color-mix(in srgb, var(--danger) 16%, transparent); }
+#win-close:hover span::before,
+#win-close:hover span::after { background: var(--danger); }
 /* maximized: the icon becomes two offset squares = "restore" */
 #win-max.maximized span {
   width: 8px;

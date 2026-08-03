@@ -7,7 +7,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["node"]
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "paths": { "@/*": ["./src/renderer/*"], "@shared/*": ["./src/shared/*"] }
   },
   "include": ["src", "tests"]
 }

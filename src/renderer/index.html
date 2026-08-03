@@ -2,81 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- img-src data: carries the inline SVG check glyph in style.css -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:">
+  <!-- Local content only — nothing here is ever fetched over the network.
+       style-src needs 'unsafe-inline' because sonner injects its stylesheet as
+       a <style> element at runtime; Radix positions its popovers through the
+       CSSOM, which CSP does not gate. img-src data: carries inline SVG. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'">
   <title>Aluminum</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header id="titlebar">
-    <div id="brand">
-      <div id="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 16 16" width="12" height="12">
-          <polyline points="3.4,7.4 8,3 12.6,7.4" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"></polyline>
-          <polyline points="3.4,13 8,8.6 12.6,13" fill="none" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"></polyline>
-        </svg>
-      </div>
-      <span id="brand-name">Aluminum</span>
-    </div>
-    <button id="win-theme" title="Theme" aria-label="Theme" aria-haspopup="true" aria-expanded="false">
-      <span id="theme-dot" aria-hidden="true"></span>
-    </button>
-    <button id="win-pin" title="Pin as window (stay open, show in taskbar)" aria-label="Pin as window" aria-pressed="false">
-      <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true">
-        <circle cx="6" cy="4.4" r="2.6" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
-        <line x1="6" y1="7" x2="6" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line>
-      </svg>
-    </button>
-    <button id="win-min" title="Minimize" aria-label="Minimize"><span></span></button>
-    <button id="win-max" title="Maximize" aria-label="Maximize"><span></span></button>
-    <button id="win-close" title="Close (hide to tray)" aria-label="Close (hide to tray)"><span></span></button>
-  </header>
-  <div id="themes" hidden>
-    <div class="t-label">Theme</div>
-    <div id="theme-swatches">
-      <button class="swatch" data-theme="copper" title="Copper" aria-label="Copper" aria-pressed="true"></button>
-      <button class="swatch" data-theme="steel" title="Steel" aria-label="Steel" aria-pressed="false"></button>
-      <button class="swatch" data-theme="brass" title="Brass" aria-label="Brass" aria-pressed="false"></button>
-      <button class="swatch" data-theme="patina" title="Patina" aria-label="Patina" aria-pressed="false"></button>
-    </div>
-    <div class="t-label">Appearance</div>
-    <div id="mode-seg">
-      <button data-mode="system" aria-pressed="true">Auto</button>
-      <button data-mode="light" aria-pressed="false">Light</button>
-      <button data-mode="dark" aria-pressed="false">Dark</button>
-    </div>
-  </div>
-  <div id="input-wrap">
-    <div id="mode-toggle" role="group" aria-label="Input mode">
-      <button id="mode-add" title="Add mode — Enter adds a note" aria-label="Add mode" aria-pressed="true">
-        <!-- the row done-toggle circle, verbatim: 17px ring, 1.5px stroke -->
-        <svg viewBox="0 0 17 17" width="17" height="17" aria-hidden="true">
-          <circle cx="8.5" cy="8.5" r="7.75" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
-        </svg>
-      </button>
-      <button id="mode-search" title="Search mode — typing filters the list (Ctrl+F)" aria-label="Search mode" aria-pressed="false">
-        <svg viewBox="0 0 17 17" width="17" height="17" aria-hidden="true">
-          <circle cx="7.5" cy="7.5" r="5.1" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
-          <line x1="11.4" y1="11.4" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></line>
-        </svg>
-      </button>
-    </div>
-    <input id="new-item" type="text" placeholder="Add a note…">
-  </div>
-  <div id="suggest" hidden>
-    <div id="suggest-body">
-      <span id="suggest-label">From clipboard</span>
-      <span id="suggest-text"></span>
-    </div>
-    <button id="suggest-add">Add</button>
-    <button id="suggest-dismiss" aria-label="Dismiss suggestion">✕</button>
-  </div>
-  <ul id="list" role="listbox" aria-label="Captured items"></ul>
-  <footer id="status">
-    <span id="status-left"></span>
-    <span id="status-right"></span>
-    <button id="clear-all" hidden>clear all</button>
-  </footer>
+  <div id="root"></div>
   <script src="renderer.js"></script>
 </body>
 </html>

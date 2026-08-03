@@ -56,6 +56,19 @@ README.md
 
 **Delegation:** Opus 5 subagent (mechanical — all file contents provided)
 
+> **As-built note:** the shipped `package.json`, `tsconfig*.json`, and `scripts/build.mjs` are
+> authoritative over the snippets below. Deltas since:
+> - Typecheck split into `tsconfig.main.json` / `tsconfig.renderer.json` over
+>   `tsconfig.base.json` (Task 5); packaging moved to `electron-builder` (2026-08-01).
+> - **2026-08-03 (shadcn/Tailwind rewrite):** renderer deps added as devDependencies — react,
+>   react-dom, radix-ui, sonner, tailwindcss + @tailwindcss/cli, class-variance-authority,
+>   clsx, tailwind-merge, lucide-react, tw-animate-css. `tsconfig.renderer.json` gains
+>   `"jsx": "react-jsx"` and `paths` for `@/*` → `./src/renderer/*` and `@shared/*` →
+>   `./src/shared/*` (**TypeScript 7 removed `baseUrl`; paths must be `./`-relative**).
+>   `scripts/build.mjs` now bundles `src/renderer/main.tsx` with the renderer tsconfig and a
+>   production `NODE_ENV` define, and shells out to the local `tailwindcss` binary to compile
+>   `dist/style.css`. `components.json` (shadcn CLI config) added at the repo root.
+
 **Files:**
 - Create: `package.json`, `tsconfig.json`, `vitest.config.ts`, `scripts/build.mjs`, `.gitignore` (modify existing)
 
@@ -843,7 +856,9 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 
 > **As-built (2026-07-30, visual redesign):** the renderer was restyled to the "machined metal
 > & frosted glass" design (source of record: `design/Aluminum Prototype.dc.html`). Still vanilla
-> TS/CSS — no React/Tailwind/shadcn. Key facts:
+> TS/CSS — no React/Tailwind/shadcn. **(Superseded 2026-08-03 — see the shadcn/Tailwind
+> rewrite note at the end of this task; the visual design below is gone, the behavior it
+> describes survives.)** Key facts:
 > - **Fonts:** IBM Plex Sans/Mono bundled from `@fontsource/*` devDeps; `scripts/build.mjs`
 >   copies the five latin woff2 files into `dist/fonts/`, `@font-face` in style.css.
 > - **Theme:** warm light/dark palettes via CSS custom properties keyed off
@@ -1005,8 +1020,78 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 >   Escape, click-away, and every summon. (`#themes[hidden]` is in the display:none
 >   restatement rule — see the CSS trap above.)
 
+> **As-built (2026-08-03, React + Tailwind v4 + shadcn/ui rewrite — user request):** the
+> renderer is no longer vanilla TS/CSS. `renderer.ts` (1010 lines) and `style.css` (887 lines)
+> are DELETED; Steps 1–3 below are historical. Behavior was ported 1:1 — every keyboard path,
+> selection rule, IPC call, and empty state above still holds. Only the visual design changed:
+> the machined-metal/frosted-glass look was dropped for stock shadcn/ui (user: "I don't expect
+> you to match the UI... all the UI could be totally different following the shadcn design
+> system"). Main process, preload, `src/shared/api.ts`, and all 68 tests are UNTOUCHED.
+> - **Why React at all:** shadcn/ui is not a CSS library — it ships React components over Radix
+>   primitives. There is no way to "use shadcn" without React.
+> - **Layout:** `src/renderer/main.tsx` (root + preload guard) → `app.tsx` (all state, the
+>   document keyboard layer, every IPC subscription) → `components/` (`titlebar`,
+>   `titlebar-button`, `theme-menu`, `composer`, `suggestion-bar`, `item-list`, `item-row`,
+>   `status-bar`, `preload-error`) + `components/ui/` (12 generated shadcn components) +
+>   `hooks/` (`use-event-listener`, `use-theme`) + `lib/` (`api`, `items`, `selection`,
+>   `utils`) + `styles/globals.css`.
+> - **Pure logic extracted** out of the old imperative module and now unit-testable:
+>   `lib/items.ts` (`visibleItems`, `sectionOf`, `age`, `MONO_RE`, `highlight`) and
+>   `lib/selection.ts` (`Selection` = ids + focusId + anchorId; `selectSingle`, `selectRange`,
+>   `toggleSelected`, `pruneSelection`).
+> - **Aliases:** `@/*` → `src/renderer/*`, `@shared/*` → `src/shared/*`, declared in
+>   `tsconfig.renderer.json` and consumed by esbuild via its `tsconfig` option (one source of
+>   truth). **TypeScript 7 removed `baseUrl`** — `paths` entries must be `./`-relative.
+> - **Theming is unchanged in behavior, re-expressed in shadcn tokens:** standard shadcn
+>   neutral scale in `styles/globals.css`, with the four metal palettes overriding only
+>   `--primary`/`--primary-foreground`/`--ring` per `:root[data-theme='x']`. Light/dark stays
+>   `prefers-color-scheme` (which is what `nativeTheme.themeSource` flips), so there is NO
+>   `.dark` class and no theme provider — shadcn's usual class-based `dark` variant is
+>   deliberately not used.
+> - **`--background` is translucent on purpose** (`oklch(... / 0.82)` light, `/ 0.8` dark) so the
+>   acrylic/vibrancy material still composites; `--card`/`--popover` stay opaque so menus over
+>   glass stay readable. Do not "fix" this to an opaque background.
+> - **Build:** `scripts/build.mjs` bundles `main.tsx` with `tsconfig: 'tsconfig.renderer.json'`
+>   and `define: {'process.env.NODE_ENV': '"production"'}` — **without that define esbuild ships
+>   React's development build.** Tailwind compiles `styles/globals.css` → `dist/style.css` via
+>   the local `@tailwindcss/cli` binary. `@source '../'` in the CSS is explicit rather than
+>   trusting v4 auto-detection to escape `styles/`. Font `url()`s stay `./fonts/...` and are
+>   NOT rewritten, which is correct relative to `dist/style.css`.
+> - **CSP relaxed to `style-src 'self' 'unsafe-inline'`** — sonner injects its stylesheet as a
+>   runtime `<style>` element. Radix positioning goes through the CSSOM, which CSP does not
+>   gate, so that part needed nothing. Content is local-only and React escapes all item text.
+> - **Radix `modal={false}` on the context menu** — the modal path pulls in `react-remove-scroll`,
+>   which injects a `<style>` tag and scroll-locks a window that is one screenful tall.
+> - **Deps are all devDependencies** (react, react-dom, radix-ui, sonner, tailwindcss, cva,
+>   clsx, tailwind-merge, lucide-react, tw-animate-css): esbuild bundles the renderer, so
+>   nothing needs to reach the packaged asar. `next-themes` — pulled in by the generated
+>   `sonner.tsx` — was removed and the wrapper rewritten to `theme="system"`.
+> - **Replacements:** custom `#menu` → `ContextMenu`; `#themes` → `Popover` + `ToggleGroup`;
+>   `#toast` → `sonner` (`toast(label, { id: 'undo', duration: 5000, action })`);
+>   `#mode-toggle` → `ToggleGroup`; checkbox → Radix `Checkbox` restyled to the circle idiom;
+>   inline edit → `Textarea`, uncontrolled so the 30 s age refresh cannot eat the caret;
+>   titlebar/row buttons → `Button` + `Tooltip`.
+> - **shadcn defaults overridden where they cost legibility:** the mode toggle's and appearance
+>   segment's "on" state uses `bg-primary/15 text-primary` — stock shadcn's muted grey all but
+>   vanished on the dark translucent surface, and that toggle decides what Enter does.
+> - **Summon** replays via `key={summonKey}` on the panel wrapper: remounting restarts the
+>   `animate-summon` animation AND closes any context menu left open from last time (Radix
+>   context menus are uncontrolled, so there is no other handle on them). `<Toaster>` sits
+>   outside that wrapper so undo survives.
+> - **`clamped` is now measured per row** in a `useLayoutEffect` and reported up to `app.tsx`
+>   (`clampedIds`), because the footer's "→ more" hint needs it too. Same
+>   `scrollHeight > clientHeight` test as before.
+> - **Verified over CDP** (`--remote-debugging-port`, isolated `--user-data-dir` so the
+>   installed Aluminum.app's single-instance lock and real `items.json` were untouched):
+>   6 seeded items render with correct Pinned/Today/Yesterday/Done sections, 2 mono rows,
+>   1 clamped row; theme popover switches palette (`data-theme`/`--primary`); context menu
+>   shows the right item set; search mode filters to 2 rows with 2 `<mark>` hits; ArrowDown
+>   selects. **Zero console errors and zero CSP violations.**
+
 **Files:**
-- Modify: `src/renderer/index.html`, `src/renderer/renderer.ts`, `src/renderer/style.css` (replace placeholders)
+- Modify: `src/renderer/index.html`; delete `src/renderer/renderer.ts` + `src/renderer/style.css`;
+  add `src/renderer/{main.tsx,app.tsx,components/,hooks/,lib/,styles/globals.css}` (see the
+  2026-08-03 note above — Steps 1–3 below describe the superseded vanilla implementation)
 
 - [ ] **Step 1: Write `src/renderer/index.html`**
 
@@ -1881,7 +1966,10 @@ if (existsSync(helperPath)) {
 
 - [x] **Step 1a: Renderer polish** (deferred from Task 5 review)
 
-> **As-built:** shipped as `:root` custom properties (`--bg`, `--bg-input`, `--bg-selected`,
+> **As-built:** *(superseded twice — by the 2026-07-30 visual redesign, then by the 2026-08-03
+> shadcn/Tailwind rewrite; none of these custom properties or selectors exist any more. Kept for
+> the contrast ratios, which the shadcn neutral scale meets independently.)* shipped as `:root`
+> custom properties (`--bg`, `--bg-input`, `--bg-selected`,
 > `--border`, `--fg`, `--accent` #7aa2f7 ≈6.5:1, `--fg-muted` #9a9aa5 ≈6.0:1); `.item` carries a
 > transparent 3px left border that turns `--accent` when selected (left padding drops to 9px so
 > content doesn't shift); `.done` opacity 0.45 → 0.6; `#new-item` loses `outline: none` for an

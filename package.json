@@ -42,5 +42,14 @@
   },
   "dependencies": {
     "uiohook-napi": "^1.5.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "electron",
+      "electron-winstaller",
+      "esbuild",
+      "uiohook-napi"
+    ]
   }
 }

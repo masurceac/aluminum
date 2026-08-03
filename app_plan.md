@@ -1944,7 +1944,26 @@ git commit -m "feat: selection capture via UIA helper with clipboard fallback"
 > `signExecutable: false` (no cert — skips signing but still stamps icon +
 > version metadata on the exe; x-trade's `signAndEditExecutable: false` would
 > skip the icon too). Verified 2026-08-01: installer builds, `win-unpacked`
-> app runs, helper spawns from `resources/app/helper/`. The tray context menu
+> app runs, helper spawns from `resources/app/helper/`.
+>
+> **As-built (2026-08-03): pnpm installs need a hoisted node_modules.** The repo
+> installs cleanly with pnpm, but two things must be configured or the packaged
+> app is silently broken. (1) `.npmrc` sets `node-linker=hoisted`: with pnpm's
+> default symlinked layout electron-builder copies `uiohook-napi` into
+> `resources/app/node_modules/` as an *empty directory* — no `prebuilds/`, so
+> the global hotkey dies at runtime while the build itself reports success.
+> A hoisted, npm-shaped `node_modules` makes the copy work. (2) pnpm 10 blocks
+> lifecycle scripts by default, so `package.json` carries
+> `pnpm.onlyBuiltDependencies` = `@parcel/watcher`, `electron`,
+> `electron-winstaller`, `esbuild`, `uiohook-napi` — without it esbuild never
+> installs its platform binary and the build fails outright. Electron 43 has no
+> install script at all (it downloads its binary lazily via `install.js` /
+> electron-builder's own fetch), so it needs no approval, but listing it is
+> harmless. Verify a package by checking
+> `release/win-unpacked/resources/app/node_modules/uiohook-napi/prebuilds/win32-x64/uiohook-napi.node`
+> exists — an empty `uiohook-napi/` is the failure signature.
+>
+> The tray context menu
 > gained a **Launch at startup** checkbox: `app.getLoginItemSettings().openAtLogin` /
 > `app.setLoginItemSettings({ openAtLogin })` (Windows HKCU Run key / macOS Login Items),
 > `enabled: app.isPackaged` because a dev toggle would register the bare electron.exe.

@@ -2,7 +2,6 @@ import type * as React from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export type InputMode = 'add' | 'search';
 
@@ -49,22 +48,27 @@ export function Composer({
         variant="outline"
         className="h-9 shrink-0"
       >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ToggleGroupItem value="add" aria-label="Add mode" className={MODE_ITEM}>
-              <Plus className="size-4" />
-            </ToggleGroupItem>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Add mode — Enter adds a note</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ToggleGroupItem value="search" aria-label="Search mode" className={MODE_ITEM}>
-              <Search className="size-4" />
-            </ToggleGroupItem>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Search mode — typing filters the list</TooltipContent>
-        </Tooltip>
+        {/* Deliberately NOT wrapped in <Tooltip>: TooltipTrigger and
+          * ToggleGroupItem both write data-state to the same node through
+          * asChild, and the tooltip's "closed" wins — which silently kills the
+          * item's own on/off state and with it every data-[state=on] style.
+          * A title attribute carries the hint instead. */}
+        <ToggleGroupItem
+          value="add"
+          aria-label="Add mode"
+          title="Add mode — Enter adds a note"
+          className={MODE_ITEM}
+        >
+          <Plus className="size-4" />
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="search"
+          aria-label="Search mode"
+          title="Search mode — typing filters the list (Ctrl+F)"
+          className={MODE_ITEM}
+        >
+          <Search className="size-4" />
+        </ToggleGroupItem>
       </ToggleGroup>
 
       <Input

@@ -1074,6 +1074,15 @@ git commit -m "feat: tray app with always-on-top overlay window and IPC"
 > - **shadcn defaults overridden where they cost legibility:** the mode toggle's and appearance
 >   segment's "on" state uses `bg-primary/15 text-primary` — stock shadcn's muted grey all but
 >   vanished on the dark translucent surface, and that toggle decides what Enter does.
+> - **Radix pitfall — never nest two `asChild` triggers that both own `data-state` (do not
+>   regress):** the mode toggle items were first wrapped in `<Tooltip><TooltipTrigger asChild>`.
+>   Both `TooltipTrigger` and `ToggleGroupItem` write `data-state` to the same DOM node, and the
+>   tooltip's `"closed"` overwrote the toggle's `"on"` — silently killing EVERY `data-[state=on]`
+>   style, shadcn's default included, so the segmented control had no visible active state at
+>   all. The items carry a `title` attribute instead. The same trap is why
+>   `<PopoverTrigger asChild>` around the theme button passes `tooltip={false}` to
+>   `TitlebarButton`. Plain `Button` has no `data-state`, so the other tooltips are safe.
+>   Caught only by reading computed styles off the live renderer — it is invisible in a diff.
 > - **Summon** replays via `key={summonKey}` on the panel wrapper: remounting restarts the
 >   `animate-summon` animation AND closes any context menu left open from last time (Radix
 >   context menus are uncontrolled, so there is no other handle on them). `<Toaster>` sits
